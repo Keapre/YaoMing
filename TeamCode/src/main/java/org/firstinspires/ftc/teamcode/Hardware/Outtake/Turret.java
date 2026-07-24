@@ -85,8 +85,8 @@ public class Turret implements Module {
                     robotHeading = robotHeading + (sensors.getAngularVelocity() * turretLag);
                 }
                 double relativeAngle = Math.atan2(
-                        Math.sin(directGlobalAngle - robotHeading),
-                        Math.cos(directGlobalAngle - robotHeading));
+                        Math.sin(directGlobalAngle - robotHeading + Math.PI),
+                        Math.cos(directGlobalAngle - robotHeading + Math.PI));
 
                 double pos = angleToTurretPosition(relativeAngle - Math.toRadians(offsetAngle));
 //                Log.w("Turret info: ","robot heading " + robotHeading + " directAngle " + directGlobalAngle + " relative Angle " + relativeAngle);

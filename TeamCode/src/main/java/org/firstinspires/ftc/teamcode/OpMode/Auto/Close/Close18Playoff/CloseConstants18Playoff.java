@@ -67,13 +67,13 @@ public class CloseConstants18Playoff {
     public static double turretPreloadRed = 0.49;
     public static double turretPreloadBlue = 0.455;
     public static double failSafeGateTime = 1550;
-    public static double failSafeGateTimeMainSenzori = 2500;
+    public static double failSafeGateTimeMainSenzori = 2000;
     public static int gateClearCount1 = 1;
     public static int gateClearCount2 = 2;
     public static int gateClearCount3 = 3;
     public static int gateClearCount4 = 0;
     public static int headingTheeshold = 50;
-    public static double gatePickupX = 13.6, gatePickupY = 57.9, gatePickupHeading = 4.1705407311116354;
+    public static double gatePickupX = 13.6, gatePickupY = 58.6, gatePickupHeading = 4.1705407311116354;
     public static double gatePickupXFailSafe = 14.5, gatePickupYFailSafe = 56.7, gatePickupHeadingFailSafe = 4.350019301402063;
     public Pose gatePickupPose;
     public static double percentage = 0.75;
