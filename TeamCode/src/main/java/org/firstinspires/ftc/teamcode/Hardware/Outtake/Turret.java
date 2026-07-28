@@ -23,7 +23,7 @@ public class Turret implements Module {
     Sensors sensors;
 
     public static boolean backlashYok = false;
-    public static double offsetAngle = 0;
+    public static double offsetAngle = -3;
 
 
 
@@ -35,7 +35,7 @@ public class Turret implements Module {
     }
 
     public double fixed_pos = 0.5;
-    public static double centerPose = 0.477;
+    public static double centerPose = 0.5;
     public TurretState turretState = TurretState.TRACKING;
     Robot robot;
 
@@ -46,9 +46,6 @@ public class Turret implements Module {
         servoLeft = rb.hw.get(Servo.class,"turretL");
         servoRight = rb.hw.get(Servo.class,"turretR");
         this.sensors = sensors;
-        resetOffset();
-
-
     }
     public static boolean useAngularComp = false;
     public static double turretLag = 0.1;

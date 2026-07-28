@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Turret;
+import org.firstinspires.ftc.teamcode.Hardware.Vision.Limelight;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.Util.Controllers.velocityController;
 
@@ -37,6 +38,7 @@ public class Robot {
     public Outtake outtake;
     public Sensors sensors;
     public Blob blob = null;
+    public Limelight limelight;
     public OpMode op;
     public static boolean showTelemetry = false;
     Telemetry telemetry;
@@ -64,6 +66,7 @@ public class Robot {
         sensors = new Sensors(this);
         intakeTransfer = new IntakeTransfer(this,sensors);
         outtake = new Outtake(this,sensors);
+        limelight = new Limelight(this);
         TelemetryUtil.setup();
     }
 
@@ -100,6 +103,8 @@ public class Robot {
 
         t5 = System.nanoTime();
         outtakeTimeMs = (t5 - t4) / 1_000_000.0;
+
+        limelight.update();
 
         Info.lastPoseX = sensors.getX();
         Info.lastPoseY = sensors.getY();
