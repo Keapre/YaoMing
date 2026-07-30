@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Util.Info;
 public class FarConstants {
 
     public static int limelightPipeline = 9;
-    public static int fallbackZone = 3;
+    public static int fallbackZone = 0;
 
     public static double zoneSpeedThreshold = 90;
     public static int zoneSpeedShiftPose = -1;

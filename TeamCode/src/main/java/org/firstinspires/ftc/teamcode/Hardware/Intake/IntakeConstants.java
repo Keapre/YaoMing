@@ -7,9 +7,9 @@ public class IntakeConstants {
 
     /*-----MOTOR POWERS---*/
     public static double intakePowerIntake = 1;
-    public static double intakePowerIntakeFarZone = 0.6;
+    public static double intakePowerIntakeFarZone = 0.55;
     public static double transferPowerIntake = 0.75;
-    public static double transferPowerIntakeFarZone = 0.6;
+    public static double transferPowerIntakeFarZone = 0.55;
     public static double reversePower = 1;
     public static double intakePowerRecycle = 1;
 

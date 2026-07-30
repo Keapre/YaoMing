@@ -38,9 +38,9 @@ public class OuttakePositions {
     /*--TURRET--*/
     public static double MIN_TURRET_ANGLE = Math.toRadians(90);
     public static double MAX_TURRET_ANGLE = -Math.toRadians(90);
-    public static double MIN_TURRET_POSITION = 0.195;
-    public static double MAX_TURRET_POSITION = 0.762;
-    public static double MIN_TURRET_RANGE = 0.14;
+    public static double MIN_TURRET_POSITION = 0.22;
+    public static double MAX_TURRET_POSITION = 0.785;
+    public static double MIN_TURRET_RANGE = 0.06;
     public static double MAX_TURRET_RANGE = 0.95;
 
     /*--BLOCKER--*/
