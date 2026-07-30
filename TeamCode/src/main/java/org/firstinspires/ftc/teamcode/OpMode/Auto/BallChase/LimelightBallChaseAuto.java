@@ -36,6 +36,10 @@ public class LimelightBallChaseAuto extends LinearOpMode {
 
         gg = new GamePadController(gamepad1);
 
+        // Fully qualified: this class has its own nested Phase enum. Needed so the Limelight stays
+        // enabled in auto (Info.phase is static and persists from a prior teleop run).
+        org.firstinspires.ftc.teamcode.Util.Info.phase =
+                org.firstinspires.ftc.teamcode.Util.Globals.Phase.AUTONOMOUS;
         robot = new Robot(this);
         robot.blob.setMode(Blob.State.DRIVE);
         robot.outtake.outtakeState = Outtake.OuttakeState.IDLE;

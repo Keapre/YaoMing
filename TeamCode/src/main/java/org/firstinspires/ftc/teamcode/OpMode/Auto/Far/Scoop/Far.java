@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode.Auto.Far;
+package org.firstinspires.ftc.teamcode.OpMode.Auto.Far.Scoop;
 
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
@@ -22,6 +22,7 @@ public class Far extends OpMode {
     ElapsedTime timerAuto = null;
 
     int cycleCounter = 0;
+    int hpCycleCounter = 0;
     int chosenZone = -1;
     Pose chosenZonePose = null;
 
@@ -32,6 +33,10 @@ public class Far extends OpMode {
         WAIT_PICKUP_HP,
         GO_SCORE_HP,
         WAIT_SCORE_HP,
+        GO_PICKUP_HP_CYCLE,
+        WAIT_PICKUP_HP_CYCLE,
+        GO_SCORE_HP_CYCLE,
+        WAIT_SCORE_HP_CYCLE,
         GO_PICKUP3_INTER,
         GO_PICKUP3,
         WAIT_PICKUP3,
@@ -134,7 +139,7 @@ public class Far extends OpMode {
                 break;
             case WAIT_SCORE_HP:
                 robot.outtake.specificValues(constants.scorePose);
-                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
+                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
                 sleep(constants.getShootingTime(), AutoStates.GO_PICKUP3_INTER, true);
@@ -168,18 +173,43 @@ public class Far extends OpMode {
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
+                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP_CYCLE, true);
                 break;
 
-            case DECIDE_ZONE:
-                chosenZone = robot.limelight.getZone();
-                if (chosenZone < 0 && pathTimer.getElapsedTime() < constants.getZoneDecideTimeout()) break;
-                chosenZonePose = constants.zonePose(chosenZone);
-                setPathState(AutoStates.GO_ZONE_PICKUP);
-                break;
-            case GO_ZONE_PICKUP:
+            case GO_PICKUP_HP_CYCLE:
                 robot.outtake.specificValues(constants.scorePose);
-                robot.blob.setTargetPosition(chosenZonePose);
+                robot.blob.setTargetPosition(constants.humanPlayerPose);
+                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
+                setPathState(AutoStates.WAIT_PICKUP_HP);
+                break;
+            case WAIT_PICKUP_HP_CYCLE:
+                if (robot.sensors.areAllBeamsLowForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
+                    setPathState(AutoStates.GO_SCORE_HP);
+                }
+                break;
+
+            case GO_SCORE_HP_CYCLE:
+                robot.blob.setTargetPosition(constants.scorePose);
+                robot.outtake.specificValues(constants.scorePose);
+                setPathState(AutoStates.WAIT_SCORE_HP_CYCLE);
+                break;
+            case WAIT_SCORE_HP_CYCLE:
+                robot.outtake.specificValues(constants.scorePose);
+                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
+                robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
+                hpCycleCounter++;
+                if (hpCycleCounter < constants.getHpCycleCount()) {
+                    sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP_CYCLE, true);
+                } else {
+                    sleep(constants.getShootingTime(), AutoStates.GO_ZONE_PICKUP, true);
+                }
+                break;
+
+            case GO_ZONE_PICKUP:
+                robot.outtake.specificValues(constants.scorePoseScoop);
+                robot.blob.setTargetPosition(constants.scoopPose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
                 if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 setPathState(AutoStates.WAIT_ZONE_PICKUP);
@@ -205,7 +235,7 @@ public class Far extends OpMode {
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
                 cycleCounter++;
                 if (cycleCounter < constants.getCycleCount()) {
-                    sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
+                    sleep(constants.getShootingTime(), AutoStates.GO_ZONE_PICKUP, true);
                 } else {
                     sleep(constants.getShootingTime(), AutoStates.GO_TO_PARK, true);
                 }

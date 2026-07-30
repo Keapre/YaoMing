@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
+import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
+import org.firstinspires.ftc.teamcode.Util.Info;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
 import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
 
@@ -43,6 +45,7 @@ public class StraightBackAndForthBlob extends LinearOpMode {
         gg = new GamePadController(gamepad1);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
+        Info.phase = Phase.AUTONOMOUS;
         robot = new Robot(this);
         waitForStart();
 

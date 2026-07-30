@@ -9,6 +9,8 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.teamcode.Hardware.Module;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
+import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
+import org.firstinspires.ftc.teamcode.Util.Info;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class Limelight implements Module {
     private final Robot robot;
     private final Limelight3A ll;
     private final double[] pyInputs = new double[5];
+    private final boolean enabled;
 
     private double tx, ty, ballCount, bx, by, bw, bh;
     private boolean hasTarget;
@@ -41,7 +44,12 @@ public class Limelight implements Module {
     public Limelight(Robot robot) {
         this.robot = robot;
         ll = robot.hw.get(Limelight3A.class, "limelight");
-        ll.start();
+        enabled = (Info.phase == Phase.AUTONOMOUS);
+        if (enabled) {
+            ll.start();
+        } else {
+            ll.stop();
+        }
     }
 
     private void updatePythonInputs() {
@@ -64,6 +72,10 @@ public class Limelight implements Module {
 
     @Override
     public void update() {
+        if (!enabled) {
+            hasTarget = false;
+            return;
+        }
         updatePythonInputs();
 
         boolean fresh = false;
@@ -105,6 +117,8 @@ public class Limelight implements Module {
     public double getBoxY() { return by; }
     public double getBoxW() { return bw; }
     public double getBoxH() { return bh; }
+
+    public double getAvgZoneSpeed() { return bh; }
     public double[] getRawOutput() { return raw; }
 
     public void onRising(String name, BooleanSupplier condition, Runnable action) {

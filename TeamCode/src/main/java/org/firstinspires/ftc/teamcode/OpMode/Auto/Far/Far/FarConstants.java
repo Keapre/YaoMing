@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpMode.Auto.Far;
+package org.firstinspires.ftc.teamcode.OpMode.Auto.Far.Far;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.geometry.Pose;
@@ -10,26 +10,29 @@ import org.firstinspires.ftc.teamcode.Util.Info;
 public class FarConstants {
 
     public static int limelightPipeline = 9;
-    public static int fallbackZone = 2;
+    public static int fallbackZone = 3;
 
-    public static int cycleCount = 5;
+    public static double zoneSpeedThreshold = 90;
+    public static int zoneSpeedShiftPose = -1;
+
+    public static int cycleCount = 6;
 
     public static double launcherVelocity = 0;
     public static double hoodPosition = 0;
     public static double shootingTime = 650;      // ms held feeding per shot
     public static double shootingPercentage = 0.95; // path progress before we commit to shooting
-    public static double cycleIntakeUntilPercentage = 0.3;
+    public static double cycleIntakeUntilPercentage = 0.15;
 
-    public static double failSafeDtTime = 775;
-    public static long failSafePickupTime = 750;
+    public static double failSafeDtTime = 725;
+    public static long failSafePickupTime = 825;
     public static double zoneDecideTimeout = 750;
     public static double scoreFailSafeDtTime = 2500;
-    public static double scoreSettleDelay = 150;
+    public static double scoreSettleDelay = 250;
 
 
 
     public static double pickUp3XIntermediary  = 36,pickUp3YIntermediairy = 24, pickUp3HeadingIntermediary = Math.PI/2;
-    public static double pickUp3X = 36,pickUp3Y= 61, pickUp3Heading = Math.PI/2;
+    public static double pickUp3X = 36,pickUp3Y= 59.5, pickUp3Heading = Math.PI/2;
     public Pose pickUpPose3;
     public Pose pickUpPose3Intermediary;
 
@@ -40,18 +43,18 @@ public class FarConstants {
     public static double startX = 63.93, startY = 17.37, startHeading = Math.PI/2;
     public Pose startPose;
 
-    public static double humanPlayerX = 62.29, humanPlayerY = 61.3, humanPlayerHeading = Math.PI/2;
+    public static double humanPlayerX = 63, humanPlayerY = 61.4, humanPlayerHeading = Math.PI/2;
     public Pose humanPlayerPose;
 
-    public static double scoreX = 59.64, scoreY = 14.73, scoreHeading = -4.5210;
+    public static double scoreX = 59.64, scoreY = 13.73, scoreHeading = -4.5350;
     public Pose scorePose;
 
 
 
-    public static double zone0X = 62.13, zone0Y = 61.82, zone0Heading = Math.PI/2;
-    public static double zone1X = 51.33, zone1Y = 61.82, zone1Heading = Math.PI/2;
-    public static double zone2X = 39.51, zone2Y = 61.82, zone2Heading = Math.PI/2;
-    public static double zone3X = 27.95, zone3Y = 61.82, zone3Heading = Math.PI/2;
+    public static double zone0X = 63, zone0Y = 61.32, zone0Heading = Math.PI/2;
+    public static double zone1X = 51.33, zone1Y = 61.32, zone1Heading = Math.PI/2;
+    public static double zone2X = 39.51, zone2Y = 61.32, zone2Heading = Math.PI/2;
+    public static double zone3X = 27.3, zone3Y = 61.32, zone3Heading = Math.PI/2;
     public Pose zonePose0, zonePose1, zonePose2, zonePose3;
     public Pose[] zonePoses;
 
@@ -88,12 +91,18 @@ public class FarConstants {
     }
 
     public Pose zonePose(int zoneIndex) {
+        return zonePoses[poseIndexFor(zoneIndex)];
+    }
+
+    public int poseIndexFor(int zoneIndex) {
         if (Info.alliance == Alliance.RED && zoneIndex >= 0 && zoneIndex < zonePoses.length) {
             zoneIndex = zonePoses.length - 1 - zoneIndex;
         }
         if (zoneIndex < 0 || zoneIndex >= zonePoses.length) zoneIndex = fallbackZone;
-        return zonePoses[zoneIndex];
+        return zoneIndex;
     }
+
+    public double getZoneSpeedThreshold() { return zoneSpeedThreshold; }
 
     public double getLauncherVelocity() { return launcherVelocity; }
     public double getHoodPosition() { return hoodPosition; }

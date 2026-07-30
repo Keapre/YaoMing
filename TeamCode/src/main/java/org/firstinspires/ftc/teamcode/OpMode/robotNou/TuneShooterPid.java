@@ -12,6 +12,8 @@ import org.firstinspires.ftc.teamcode.Hardware.Outtake.Launcher;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.OuttakePositions;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
+import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
+import org.firstinspires.ftc.teamcode.Util.Info;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
 import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
 
@@ -24,6 +26,7 @@ public class TuneShooterPid extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         gg = new GamePadController(gamepad1);
+        Info.phase = Phase.TELEOP;
         robot = new Robot(this);
         waitForStart();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());

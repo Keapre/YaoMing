@@ -23,7 +23,7 @@ public class Turret implements Module {
     Sensors sensors;
 
     public static boolean backlashYok = false;
-    public static double offsetAngle = -3;
+    public static double offsetAngle = 1;
 
 
 
