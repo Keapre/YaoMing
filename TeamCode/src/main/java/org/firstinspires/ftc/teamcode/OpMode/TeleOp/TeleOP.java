@@ -50,8 +50,8 @@ public class TeleOP extends LinearOpMode
     Pose startPoseBlue = new Pose(startPoseRed.getX(),startPoseRed.getY() *-1 , - startPoseRed.getHeading());
     Pose resetPoseRed = new Pose(-6.721, 53.201, Math.PI/2); //TODO
     Pose resetPoseRedHuman = new Pose(64.7, 60.4, Math.PI/2); //TODO
-    Pose resetPoseRedBlue = new Pose(63, 60.4, Math.PI/2); //TODO
-    Pose resetPoseBlue = new Pose(-6.421,-53.311, -1.568);
+    Pose resetPoseBlue = new Pose(-6.421,-53.311, -1.568); //TODO
+    Pose resetPoseBlueHuman = new Pose(resetPoseRedHuman.getX(), -resetPoseRedHuman.getY(), -resetPoseRedHuman.getHeading()); //TODO
     Pose resetCenter = new Pose(0, 0, Math.PI/2);
     private double loopTime = 0;
 
@@ -209,16 +209,17 @@ public class TeleOP extends LinearOpMode
         robot.blob.setTargetVector( x , y , rotation );
 
         if (gg.rightStickButtonOnce()) {
+            Pose near = (Info.alliance == Alliance.RED) ? resetPoseRed : resetPoseBlue;
+            Pose human = (Info.alliance == Alliance.RED) ? resetPoseRedHuman : resetPoseBlueHuman;
+            double cx = robot.blob.odo.getX();
+            double cy = robot.blob.odo.getY();
+            boolean humanCloser = Math.hypot(cx - human.getX(), cy - human.getY())
+                                < Math.hypot(cx - near.getX(), cy - near.getY());
+            robot.blob.odo.setPose(humanCloser ? human : near);
+            robot.outtake.turret.resetOffset();
             if (Info.alliance == Alliance.RED) {
-                robot.blob.odo.setPose(resetPoseRed);
-                robot.outtake.turret.resetOffset();
                 robot.outtake.launcher.manualOffset = 0;
-
-            }else {
-                robot.blob.odo.setPose(resetPoseBlue);
-                robot.outtake.turret.resetOffset();
             }
-
         }
         if (gg.dpadDown()) {
             if(gg.leftTrigger() && gg.rightTrigger()){

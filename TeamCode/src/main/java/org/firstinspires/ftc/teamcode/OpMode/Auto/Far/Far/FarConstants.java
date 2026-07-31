@@ -53,8 +53,8 @@ public class FarConstants {
 
     public static double zone0X = 63, zone0Y = 61.32, zone0Heading = Math.PI/2;
     public static double zone1X = 51.33, zone1Y = 61.32, zone1Heading = Math.PI/2;
-    public static double zone2X = 39.51, zone2Y = 61.32, zone2Heading = Math.PI/2;
-    public static double zone3X = 27.3, zone3Y = 61.32, zone3Heading = Math.PI/2;
+    public static double zone2X = 39.51, zone2Y = 61.32, zone2Heading = -4.5550;
+    public static double zone3X = 27.3, zone3Y = 61.32, zone3Heading =-4.5550;
     public Pose zonePose0, zonePose1, zonePose2, zonePose3;
     public Pose[] zonePoses;
 
