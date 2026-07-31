@@ -5,6 +5,7 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
@@ -21,25 +22,39 @@ import java.util.function.BooleanSupplier;
 @Config
 public class Limelight implements Module {
 
-    public static int IDX_TX = 0, IDX_TY = 1, IDX_COUNT = 2, IDX_HAS_TARGET = 3;
-    public static int IDX_BX = 4, IDX_BY = 5, IDX_BW = 6, IDX_BH = 7;
-    public static int IDX_ZONE = 1;
-
-
-    public static int IN_ROBOT_X = 0, IN_ROBOT_Y = 1, IN_ROBOT_HEADING = 2;
-    public static int IN_ROBOT_VX = 3, IN_ROBOT_VY = 4;
 
     public static double STALE_TIMEOUT_MS = 250;
+    public static double DETECT_CONF = 0.4;
+    public static double HFOV_DEG = 54.5;
+    public static int NUM_ZONES = 4;
+    public static double ZONE_SWITCH_MIN_MARGIN = 1;
+    public static double SMOOTHING_ALPHA = 0.15;
+    public static int LOST_TARGET_FRAMES = 5;
+
+    public static double TRACK_MATCH_DIST_DEG = 8.0;
+    public static int MAX_MISSED_FRAMES = 5;
+    public static double VELOCITY_ALPHA = 0.3;
+
+    public static double LAMP_ON_POS = 1.0;
+    public static double LAMP_OFF_POS = 0.0;
 
     private final Robot robot;
     private final Limelight3A ll;
-    private final double[] pyInputs = new double[5];
     private final boolean enabled;
     private final ServoImplEx lamp;
 
-    private double tx, ty, ballCount, bx, by, bw, bh;
+    private double tx;
+    private double ballCount;
+    private double avgZoneSpeed;
+    private int zone = -1;
+    private int[] zoneCountsOut = new int[0];
     private boolean hasTarget;
-    private double[] raw = new double[0];
+
+    private final List<Ball> tracks = new ArrayList<>();
+    private double lastFrameTimeS = -1;
+    private int lostCounter = 0;
+    private Integer lockedZone = null;
+    private int lockedZoneCount = 0;
 
     private final List<Trigger> triggers = new ArrayList<>();
     private boolean triggersEnabled = true;
@@ -60,22 +75,8 @@ public class Limelight implements Module {
     }
 
     public void setLamp(boolean on) {
-        if (on) {
-            lamp.setPwmEnable();
-            lamp.setPosition(1.0);
-        } else {
-            lamp.setPwmDisable();
-        }
-    }
-
-    private void updatePythonInputs() {
-        if (robot.blob == null || robot.blob.odo == null) return;
-        pyInputs[IN_ROBOT_X] = robot.blob.odo.getX();
-        pyInputs[IN_ROBOT_Y] = robot.blob.odo.getY();
-        pyInputs[IN_ROBOT_HEADING] = robot.blob.odo.getHeading();
-        pyInputs[IN_ROBOT_VX] = robot.blob.getVelocityX();
-        pyInputs[IN_ROBOT_VY] = robot.blob.getVelocityY();
-        ll.updatePythonInputs(pyInputs);
+        lamp.setPwmEnable();
+        lamp.setPosition(on ? LAMP_ON_POS : LAMP_OFF_POS);
     }
 
     public void pipelineSwitch(int index) {
@@ -92,50 +93,139 @@ public class Limelight implements Module {
             hasTarget = false;
             return;
         }
-        updatePythonInputs();
 
+        double now = System.nanoTime() / 1e9;
+        double dt = (lastFrameTimeS >= 0) ? (now - lastFrameTimeS) : 0.0;
+        lastFrameTimeS = now;
+
+        List<Ball> detections = new ArrayList<>();
         boolean fresh = false;
         LLResult result = ll.getLatestResult();
         if (result != null) {
-            double[] py = result.getPythonOutput();
-            if (py != null && py.length > IDX_HAS_TARGET) {
-                raw = py;
-                tx = at(py, IDX_TX);
-                ty = at(py, IDX_TY);
-                ballCount = at(py, IDX_COUNT);
-                bx = at(py, IDX_BX);
-                by = at(py, IDX_BY);
-                bw = at(py, IDX_BW);
-                bh = at(py, IDX_BH);
-                hasTarget = at(py, IDX_HAS_TARGET) > 0.5;
-                fresh = result.getStaleness() <= STALE_TIMEOUT_MS;
+            fresh = result.getStaleness() <= STALE_TIMEOUT_MS;
+            List<LLResultTypes.DetectorResult> dets = result.getDetectorResults();
+            if (dets != null) {
+                for (LLResultTypes.DetectorResult d : dets) {
+                    if (d.getConfidence() < DETECT_CONF) continue;
+                    Ball b = new Ball();
+                    b.cx = d.getTargetXDegrees();
+                    b.cy = d.getTargetYDegrees();
+                    b.area = d.getTargetArea();
+                    b.color = d.getClassName();
+                    detections.add(b);
+                }
             }
         }
 
-        if (!fresh) {
-            hasTarget = false;
+        matchAndUpdateTracks(detections, dt);
+
+        int nz = Math.max(1, NUM_ZONES);
+        int[] zoneCounts = new int[nz];
+        List<List<Ball>> zones = new ArrayList<>();
+        for (int i = 0; i < nz; i++) zones.add(new ArrayList<>());
+        int count = 0;
+        for (Ball t : tracks) {
+            if (t.missed != 0) continue;
+            int z = zoneOf(t.cx, nz);
+            zones.get(z).add(t);
+            zoneCounts[z]++;
+            count++;
         }
+        ballCount = count;
+        zoneCountsOut = zoneCounts;
+
+        boolean rawFound = false;
+        double rawAvgSpeed = 0.0;
+        if (count > 0) {
+            double center = (nz - 1) / 2.0;
+            int best = 0;
+            for (int i = 1; i < nz; i++) {
+                if (zoneCounts[i] > zoneCounts[best]
+                        || (zoneCounts[i] == zoneCounts[best]
+                            && Math.abs(i - center) < Math.abs(best - center))) {
+                    best = i;
+                }
+            }
+
+            int lockedCount = (lockedZone != null) ? zoneCounts[lockedZone] : 0;
+            if (lockedZone == null || zoneCounts[best] > lockedZoneCount + ZONE_SWITCH_MIN_MARGIN || lockedCount == 0) {
+                lockedZone = best;
+            }
+            int chosen = lockedZone;
+            lockedZoneCount = zoneCounts[chosen];
+
+            List<Ball> chosenBalls = zones.get(chosen);
+            if (!chosenBalls.isEmpty()) {
+                rawFound = true;
+                double totalArea = 0, wcx = 0;
+                for (Ball b : chosenBalls) { totalArea += b.area; wcx += b.cx * b.area; }
+                double avgCx = (totalArea > 0) ? wcx / totalArea : chosenBalls.get(0).cx;
+                tx = SMOOTHING_ALPHA * avgCx + (1 - SMOOTHING_ALPHA) * tx;
+
+                double sp = 0;
+                for (Ball b : chosenBalls) sp += Math.hypot(b.vx, b.vy);
+                rawAvgSpeed = sp / chosenBalls.size();
+                lostCounter = 0;
+            }
+        }
+
+        if (!rawFound) {
+            lostCounter++;
+            if (lostCounter > LOST_TARGET_FRAMES) {
+                tx = 0.0;
+                lockedZone = null;
+                lockedZoneCount = 0;
+            }
+        }
+
+        avgZoneSpeed = rawAvgSpeed;
+        zone = (lockedZone != null) ? lockedZone : -1;
+        hasTarget = fresh && (rawFound || lostCounter <= LOST_TARGET_FRAMES);
+
         if (triggersEnabled) {
             for (Trigger t : triggers) t.evaluate();
         }
     }
 
-    private static double at(double[] a, int i) {
-        return (i >= 0 && i < a.length) ? a[i] : 0.0;
+    private int zoneOf(double txDeg, int nz) {
+        double frac = (txDeg / (HFOV_DEG / 2.0) + 1.0) / 2.0; // [-hfov/2,+hfov/2] -> [0,1]
+        int z = (int) Math.floor(frac * nz);
+        return Math.max(0, Math.min(nz - 1, z));
+    }
+
+    private void matchAndUpdateTracks(List<Ball> detections, double dt) {
+        double safeDt = Math.max(dt, 1e-3);
+        List<Ball> unmatched = new ArrayList<>(detections);
+        for (Ball track : tracks) {
+            Ball best = null;
+            double bestDist = Double.MAX_VALUE;
+            for (Ball d : unmatched) {
+                double dist = Math.hypot(d.cx - track.cx, d.cy - track.cy);
+                if (dist < bestDist) { bestDist = dist; best = d; }
+            }
+            if (best != null && bestDist < TRACK_MATCH_DIST_DEG) {
+                double rawVx = (best.cx - track.cx) / safeDt;
+                double rawVy = (best.cy - track.cy) / safeDt;
+                track.vx = VELOCITY_ALPHA * rawVx + (1 - VELOCITY_ALPHA) * track.vx;
+                track.vy = VELOCITY_ALPHA * rawVy + (1 - VELOCITY_ALPHA) * track.vy;
+                track.cx = best.cx; track.cy = best.cy;
+                track.area = best.area; track.color = best.color;
+                track.missed = 0;
+                unmatched.remove(best);
+            } else {
+                track.missed++;
+            }
+        }
+        for (Ball d : unmatched) { d.vx = 0; d.vy = 0; d.missed = 0; tracks.add(d); }
+        tracks.removeIf(t -> t.missed > MAX_MISSED_FRAMES);
     }
 
     public double getTx() { return tx; }
-    public double getTy() { return ty; }
-    public int getZone() { return (int) Math.round(at(raw, IDX_ZONE)); }
+    public int getZone() { return zone; }
+    public int[] getZoneCounts() { return zoneCountsOut; }
     public double getBallCount() { return ballCount; }
     public boolean hasTarget() { return hasTarget; }
-    public double getBoxX() { return bx; }
-    public double getBoxY() { return by; }
-    public double getBoxW() { return bw; }
-    public double getBoxH() { return bh; }
-
-    public double getAvgZoneSpeed() { return bh; }
-    public double[] getRawOutput() { return raw; }
+    public double getAvgZoneSpeed() { return avgZoneSpeed; }
 
     public void onRising(String name, BooleanSupplier condition, Runnable action) {
         triggers.add(new Trigger(name, condition, action, false));
@@ -155,6 +245,14 @@ public class Limelight implements Module {
 
     public void setTriggersEnabled(boolean enabled) {
         triggersEnabled = enabled;
+    }
+
+    private static class Ball {
+        double cx, cy;
+        double vx, vy;
+        double area;
+        String color;
+        int missed;
     }
 
     private static class Trigger {

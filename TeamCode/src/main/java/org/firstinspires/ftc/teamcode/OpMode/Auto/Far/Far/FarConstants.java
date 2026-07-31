@@ -9,20 +9,22 @@ import org.firstinspires.ftc.teamcode.Util.Info;
 @Config
 public class FarConstants {
 
-    public static int limelightPipeline = 9;
+    public static int limelightPipeline = 7;
     public static int fallbackZone = 0;
 
-    public static double zoneSpeedThreshold = 90;
+    public static double zoneSpeedThreshold = 7.66; //90 px/s @ 640px: 90 * 54.5/640 cred
     public static int zoneSpeedShiftPose = -1;
 
     public static int cycleCount = 6;
 
     public static double launcherVelocity = 0;
     public static double hoodPosition = 0;
-    public static double shootingTime = 650;      // ms held feeding per shot
-    public static double shootingPercentage = 0.95; // path progress before we commit to shooting
+    public static double shootingTime = 650;
+    public static double shootingPercentage = 0.95;
     public static double cycleIntakeUntilPercentage = 0.15;
-    public static double hpIntakeUntilPercentage = 0.6; // intake this fraction of the HP go-to-score path, then OFF_OPEN
+    public static double cyclePickupSlowPercentage = 0.7;
+    public static double cyclePickupSlowPower = 0.8;
+    public static double hpIntakeUntilPercentage = 0.6;
 
     public static double failSafeDtTime = 725;
     public static long failSafePickupTime = 825;
@@ -33,7 +35,7 @@ public class FarConstants {
 
 
     public static double pickUp3XIntermediary  = 36,pickUp3YIntermediairy = 24, pickUp3HeadingIntermediary = Math.PI/2;
-    public static double pickUp3X = 36,pickUp3Y= 59.5, pickUp3Heading = Math.PI/2;
+    public static double pickUp3X = 36,pickUp3Y= 57.5, pickUp3Heading = Math.PI/2;
     public Pose pickUpPose3;
     public Pose pickUpPose3Intermediary;
 
@@ -47,15 +49,15 @@ public class FarConstants {
     public static double humanPlayerX = 63, humanPlayerY = 61.4, humanPlayerHeading = Math.PI/2;
     public Pose humanPlayerPose;
 
-    public static double scoreX = 59.64, scoreY = 13.73, scoreHeading = -4.5350;
+    public static double scoreX = 59.64, scoreY = 13.73, scoreHeading = -4.5050;
     public Pose scorePose;
 
 
 
-    public static double zone0X = 63, zone0Y = 61.32, zone0Heading = Math.PI/2;
-    public static double zone1X = 51.33, zone1Y = 61.32, zone1Heading = Math.PI/2;
-    public static double zone2X = 39.51, zone2Y = 61.32, zone2Heading = -4.5550;
-    public static double zone3X = 27.3, zone3Y = 61.32, zone3Heading =-4.5550;
+    public static double zone0X = 63, zone0Y = 59.32, zone0Heading = Math.PI/2;
+    public static double zone1X = 51.33, zone1Y = 59.32, zone1Heading = Math.PI/2;
+    public static double zone2X = 39.51, zone2Y = 59.32, zone2Heading = -4.5550;
+    public static double zone3X = 27.3, zone3Y = 59.32, zone3Heading =-4.5550;
     public Pose zonePose0, zonePose1, zonePose2, zonePose3;
     public Pose[] zonePoses;
 
@@ -110,6 +112,8 @@ public class FarConstants {
     public double getShootingTime() { return shootingTime; }
     public double getShootingPercentage() { return shootingPercentage; }
     public double getCycleIntakeUntilPercentage() { return cycleIntakeUntilPercentage; }
+    public double getCyclePickupSlowPercentage() { return cyclePickupSlowPercentage; }
+    public double getCyclePickupSlowPower() { return cyclePickupSlowPower; }
     public double getHpIntakeUntilPercentage() { return hpIntakeUntilPercentage; }
     public double getFailSafeDtTime() { return failSafeDtTime; }
     public double getScoreFailSafeDtTime() { return scoreFailSafeDtTime; }

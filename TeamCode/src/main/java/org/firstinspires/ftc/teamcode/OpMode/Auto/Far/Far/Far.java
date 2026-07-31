@@ -77,19 +77,7 @@ public class Far extends OpMode {
         robot.sensors.update();
         robot.outtake.primeAimForAuto();
 
-        if (gamepad1.a && selectedPipeline != 9) {
-            selectedPipeline = 9;
-            robot.limelight.pipelineSwitch(selectedPipeline);
-        } else if (gamepad1.b && selectedPipeline != 8) {
-            selectedPipeline = 8;
-            robot.limelight.pipelineSwitch(selectedPipeline);
-        }
-
-        telemetry.addLine("Limelight pipeline select:");
-        telemetry.addData("  A", "pipeline 9  (RED LIGHT SHINING ON THE ROBOT)");
-        telemetry.addData("  B", "pipeline 8  (BLUE LIGHT SHINING ON THE ROBOT)");
-        telemetry.addData("Selected pipeline",
-                selectedPipeline + (selectedPipeline == 9 ? "  (RED light)" : "  (BLUE light)"));
+        telemetry.addData("Limelight pipeline", selectedPipeline);
         telemetry.update();
     }
 
@@ -110,7 +98,8 @@ public class Far extends OpMode {
     public void loop() {
         telemetry.addData("auto state", autoStates);
         telemetry.addData("cycle", cycleCounter + "/" + constants.getCycleCount());
-        telemetry.addData("LL zone", robot.limelight.getZone());
+        telemetry.addData("LL zone counts", java.util.Arrays.toString(robot.limelight.getZoneCounts()));
+        telemetry.addData("LL target zone", robot.limelight.getZone());
         telemetry.addData("LL hasTarget", robot.limelight.hasTarget());
         telemetry.addData("Drive inPos", robot.blob.inPosition());
         telemetry.addData("outtake state", robot.outtake.outtakeState);
@@ -128,7 +117,7 @@ public class Far extends OpMode {
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF);
                 if (!robot.outtake.launcher.isReady() && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP3_INTER, true);
+                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP, true);
                 break;
 
             case GO_PICKUP_HP:
@@ -158,7 +147,7 @@ public class Far extends OpMode {
                 }
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
+                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP3_INTER, true);
                 break;
 
             case GO_PICKUP3_INTER:
@@ -189,7 +178,7 @@ public class Far extends OpMode {
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP, true);
+                sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
                 break;
 
             case DECIDE_ZONE:
@@ -207,6 +196,9 @@ public class Far extends OpMode {
                 robot.outtake.specificValues(constants.scorePose);
                 robot.blob.setTargetPosition(chosenZonePose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                if (pathFraction(constants.scorePose, chosenZonePose) >= constants.getCyclePickupSlowPercentage()) {
+                    robot.blob.maxPower = constants.getCyclePickupSlowPower();
+                }
                 if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 setPathState(AutoStates.WAIT_ZONE_PICKUP);
                 break;
@@ -216,6 +208,7 @@ public class Far extends OpMode {
                 }
                 break;
             case GO_SCORE_CYCLE:
+                robot.blob.maxPower = 1.0;
                 robot.blob.setTargetPosition(constants.scorePose);
                 robot.outtake.turret.turretState = Turret.TurretState.TRACKING;
                 setPathState(AutoStates.WAIT_SCORE_CYCLE);
