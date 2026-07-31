@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.teamcode.Hardware.Module;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
@@ -33,6 +35,7 @@ public class Limelight implements Module {
     private final Limelight3A ll;
     private final double[] pyInputs = new double[5];
     private final boolean enabled;
+    private final ServoImplEx lamp;
 
     private double tx, ty, ballCount, bx, by, bw, bh;
     private boolean hasTarget;
@@ -49,6 +52,19 @@ public class Limelight implements Module {
             ll.start();
         } else {
             ll.stop();
+        }
+
+        lamp = robot.hw.get(ServoImplEx.class, "lamp");
+        lamp.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        setLamp(false);
+    }
+
+    public void setLamp(boolean on) {
+        if (on) {
+            lamp.setPwmEnable();
+            lamp.setPosition(1.0);
+        } else {
+            lamp.setPwmDisable();
         }
     }
 

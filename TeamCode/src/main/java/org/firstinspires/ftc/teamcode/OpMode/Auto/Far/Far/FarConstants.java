@@ -22,6 +22,7 @@ public class FarConstants {
     public static double shootingTime = 650;      // ms held feeding per shot
     public static double shootingPercentage = 0.95; // path progress before we commit to shooting
     public static double cycleIntakeUntilPercentage = 0.15;
+    public static double hpIntakeUntilPercentage = 0.6; // intake this fraction of the HP go-to-score path, then OFF_OPEN
 
     public static double failSafeDtTime = 725;
     public static long failSafePickupTime = 825;
@@ -40,7 +41,7 @@ public class FarConstants {
 
 
 
-    public static double startX = 63.93, startY = 17.37, startHeading = Math.PI/2;
+    public static double startX = 63.94, startY = 14.93, startHeading = Math.PI/2;
     public Pose startPose;
 
     public static double humanPlayerX = 63, humanPlayerY = 61.4, humanPlayerHeading = Math.PI/2;
@@ -109,6 +110,7 @@ public class FarConstants {
     public double getShootingTime() { return shootingTime; }
     public double getShootingPercentage() { return shootingPercentage; }
     public double getCycleIntakeUntilPercentage() { return cycleIntakeUntilPercentage; }
+    public double getHpIntakeUntilPercentage() { return hpIntakeUntilPercentage; }
     public double getFailSafeDtTime() { return failSafeDtTime; }
     public double getScoreFailSafeDtTime() { return scoreFailSafeDtTime; }
     public double getScoreSettleDelay() { return scoreSettleDelay; }

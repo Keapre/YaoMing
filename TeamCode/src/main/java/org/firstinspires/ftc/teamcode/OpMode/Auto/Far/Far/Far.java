@@ -24,6 +24,7 @@ public class Far extends OpMode {
     int cycleCounter = 0;
     int chosenZone = -1;
     Pose chosenZonePose = null;
+    int selectedPipeline = FarConstants.limelightPipeline;
 
     public enum AutoStates {
         IDLE,
@@ -61,6 +62,7 @@ public class Far extends OpMode {
 
         robot.outtake.launcher.closeMode = false;
         robot.limelight.pipelineSwitch(FarConstants.limelightPipeline);
+        robot.limelight.setLamp(true);
         robot.outtake.launcher.autoAimOn(false);
         robot.outtake.outtakeState = Outtake.OuttakeState.IDLE;
         robot.sensors.setPoseAlign(false);
@@ -74,6 +76,21 @@ public class Far extends OpMode {
         robot.blob.odo.update();
         robot.sensors.update();
         robot.outtake.primeAimForAuto();
+
+        if (gamepad1.a && selectedPipeline != 9) {
+            selectedPipeline = 9;
+            robot.limelight.pipelineSwitch(selectedPipeline);
+        } else if (gamepad1.b && selectedPipeline != 8) {
+            selectedPipeline = 8;
+            robot.limelight.pipelineSwitch(selectedPipeline);
+        }
+
+        telemetry.addLine("Limelight pipeline select:");
+        telemetry.addData("  A", "pipeline 9  (RED LIGHT SHINING ON THE ROBOT)");
+        telemetry.addData("  B", "pipeline 8  (BLUE LIGHT SHINING ON THE ROBOT)");
+        telemetry.addData("Selected pipeline",
+                selectedPipeline + (selectedPipeline == 9 ? "  (RED light)" : "  (BLUE light)"));
+        telemetry.update();
     }
 
     @Override
@@ -134,7 +151,11 @@ public class Far extends OpMode {
                 break;
             case WAIT_SCORE_HP:
                 robot.outtake.specificValues(constants.scorePose);
-                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                if (pathFraction(constants.humanPlayerPose, constants.scorePose) < constants.getHpIntakeUntilPercentage()) {
+                    robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                } else {
+                    robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
+                }
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
                 sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
@@ -225,6 +246,7 @@ public class Far extends OpMode {
                 break;
             case PARK:
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
+                if (robot != null) robot.limelight.setLamp(false);
                 requestOpModeStop();
                 break;
 

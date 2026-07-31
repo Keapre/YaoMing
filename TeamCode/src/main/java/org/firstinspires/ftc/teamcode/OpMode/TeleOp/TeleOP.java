@@ -48,10 +48,10 @@ public class TeleOP extends LinearOpMode
     Pose startPose;
     Pose startPoseRed = new Pose(-3.5, 24.7, Math.PI/2);
     Pose startPoseBlue = new Pose(startPoseRed.getX(),startPoseRed.getY() *-1 , - startPoseRed.getHeading());
-    Pose resetPoseRed = new Pose(-6.721, 53.201, Math.PI/2); //TODO
-    Pose resetPoseRedHuman = new Pose(64.7, 60.4, Math.PI/2); //TODO
-    Pose resetPoseBlue = new Pose(-6.421,-53.311, -1.568); //TODO
-    Pose resetPoseBlueHuman = new Pose(resetPoseRedHuman.getX(), -resetPoseRedHuman.getY(), -resetPoseRedHuman.getHeading()); //TODO
+    Pose resetPoseRed = new Pose(-6.12, 53.40, Math.PI/2); //TODO
+    Pose resetPoseRedHuman = new Pose(63.18, -61.7, -Math.PI/2); //TODO
+    Pose resetPoseBlue = new Pose(-7.7,-53.39, -Math.PI/2); //TODO
+    Pose resetPoseBlueHuman = new Pose(63.85, 59.64 , Math.PI/2); //TODO
     Pose resetCenter = new Pose(0, 0, Math.PI/2);
     private double loopTime = 0;
 
@@ -85,6 +85,7 @@ public class TeleOP extends LinearOpMode
         robot.sensors.setUsePredictivePose(true);
         robot.sensors.setPoseAlign(false);
         motorTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+        if (robot != null) robot.limelight.setLamp(false);
 
         while(opModeIsActive())
         {
@@ -119,10 +120,10 @@ public class TeleOP extends LinearOpMode
                 telemetry.addData("timer", motorTimer.seconds());
 
                 telemetry.addData("sotm",robot.sensors.sotm);
-                telemetry.addData("zone",robot.outtake.launcher.closeMode);
                 telemetry.addData("distance to backboard", robot.sensors.getShooterDistanceToBackboard());
             }
 
+            telemetry.addData("closeZoneMode", robot.outtake.launcher.closeMode);
 
             robot.update();
             double loop = System.nanoTime();
@@ -294,7 +295,7 @@ public class TeleOP extends LinearOpMode
         }
         robot.sensors.toggleSOTM(gg.left_trigger > 0.1);
 
-        if(gg.leftStickButtonOnce()) {
+        if(gg.leftStickButtonOnce() || gg2.startOnce()) {
             robot.outtake.launcher.toggleZone();
         }
         if(gg.yOnce()) {
