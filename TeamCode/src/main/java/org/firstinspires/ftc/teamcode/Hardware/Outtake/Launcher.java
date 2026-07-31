@@ -187,7 +187,7 @@ public class Launcher implements Module {
 
 
     public static boolean forceDistance = false;
-    public static double forcedRobotX = 0; //robot coords nu shooter coords; robot angle nu e fortat
+    public static double forcedRobotX = 0; //robot coords nu shooter coords; robot angle nu e fortat/
     public static double forcedRobotY = 0;
 
     public double getOffsetTicks() {
