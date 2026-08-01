@@ -23,7 +23,7 @@ public class FarConstants {
     public static double shootingPercentage = 0.95;
     public static double cycleIntakeUntilPercentage = 0.15;
     public static double cyclePickupSlowPercentage = 0.7;
-    public static double cyclePickupSlowPower = 0.8;
+    public static double cyclePickupSlowPower = 0.7;
     public static double hpIntakeUntilPercentage = 0.6;
 
     public static double failSafeDtTime = 725;
@@ -35,7 +35,7 @@ public class FarConstants {
 
 
     public static double pickUp3XIntermediary  = 36,pickUp3YIntermediairy = 24, pickUp3HeadingIntermediary = Math.PI/2;
-    public static double pickUp3X = 36,pickUp3Y= 57.5, pickUp3Heading = Math.PI/2;
+    public static double pickUp3X = 36,pickUp3Y= 54, pickUp3Heading = Math.PI/2;
     public Pose pickUpPose3;
     public Pose pickUpPose3Intermediary;
 
@@ -49,16 +49,20 @@ public class FarConstants {
     public static double humanPlayerX = 63, humanPlayerY = 61.4, humanPlayerHeading = Math.PI/2;
     public Pose humanPlayerPose;
 
-    public static double scoreX = 59.64, scoreY = 13.73, scoreHeading = -4.5050;
+    public static double scoreX = 59.64, scoreY = 13.73, scoreHeading = -4.5250;
     public Pose scorePose;
 
 
 
-    public static double zone0X = 63, zone0Y = 59.32, zone0Heading = Math.PI/2;
-    public static double zone1X = 51.33, zone1Y = 59.32, zone1Heading = Math.PI/2;
-    public static double zone2X = 39.51, zone2Y = 59.32, zone2Heading = -4.5550;
-    public static double zone3X = 27.3, zone3Y = 59.32, zone3Heading =-4.5550;
-    public Pose zonePose0, zonePose1, zonePose2, zonePose3;
+    public static double zone0X = 63.0, zone0Y = 58.92, zone0Heading = Math.PI/2;
+    public static double zone1X = 57.9, zone1Y = 58.92, zone1Heading = Math.PI/2;
+    public static double zone2X = 52.8, zone2Y = 58.92, zone2Heading = Math.PI/2;
+    public static double zone3X = 47.7, zone3Y = 58.92, zone3Heading = Math.PI/2;
+    public static double zone4X = 42.6, zone4Y = 58.92, zone4Heading = Math.PI/2;
+    public static double zone5X = 37.5, zone5Y = 58.92, zone5Heading = Math.PI/2;
+    public static double zone6X = 32.4, zone6Y = 58.92, zone6Heading = Math.PI/2;
+    public static double zone7X = 27.3, zone7Y = 58.92, zone7Heading = Math.PI/2;
+    public Pose zonePose0, zonePose1, zonePose2, zonePose3, zonePose4, zonePose5, zonePose6, zonePose7;
     public Pose[] zonePoses;
 
 
@@ -82,7 +86,12 @@ public class FarConstants {
         zonePose1 = new Pose(zone1X, zone1Y * m, toBlobHeading(zone1Heading * m));
         zonePose2 = new Pose(zone2X, zone2Y * m, toBlobHeading(zone2Heading * m));
         zonePose3 = new Pose(zone3X, zone3Y * m, toBlobHeading(zone3Heading * m));
-        zonePoses = new Pose[]{zonePose0, zonePose1, zonePose2, zonePose3};
+        zonePose4 = new Pose(zone4X, zone4Y * m, toBlobHeading(zone4Heading * m));
+        zonePose5 = new Pose(zone5X, zone5Y * m, toBlobHeading(zone5Heading * m));
+        zonePose6 = new Pose(zone6X, zone6Y * m, toBlobHeading(zone6Heading * m));
+        zonePose7 = new Pose(zone7X, zone7Y * m, toBlobHeading(zone7Heading * m));
+        zonePoses = new Pose[]{zonePose0, zonePose1, zonePose2, zonePose3,
+                zonePose4, zonePose5, zonePose6, zonePose7};
 
         parkPose = new Pose(parkX, parkY * m, toBlobHeading(parkHeading * m));
     }

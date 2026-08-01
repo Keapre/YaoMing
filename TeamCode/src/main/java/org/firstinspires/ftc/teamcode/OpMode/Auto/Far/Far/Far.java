@@ -117,7 +117,7 @@ public class Far extends OpMode {
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF);
                 if (!robot.outtake.launcher.isReady() && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP, true);
+                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP3_INTER, true);
                 break;
 
             case GO_PICKUP_HP:
@@ -147,7 +147,7 @@ public class Far extends OpMode {
                 }
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP3_INTER, true);
+                sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
                 break;
 
             case GO_PICKUP3_INTER:
@@ -178,7 +178,7 @@ public class Far extends OpMode {
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
-                sleep(constants.getShootingTime(), AutoStates.DECIDE_ZONE, true);
+                sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP, true);
                 break;
 
             case DECIDE_ZONE:
