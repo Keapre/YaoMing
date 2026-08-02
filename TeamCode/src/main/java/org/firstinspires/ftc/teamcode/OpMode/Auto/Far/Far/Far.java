@@ -26,6 +26,11 @@ public class Far extends OpMode {
     Pose chosenZonePose = null;
     int selectedPipeline = FarConstants.limelightPipeline;
 
+    // Latched side-veer for the current pickup (decided once, then held, to avoid pump-faking).
+    boolean veerDecided = false;
+    double veerOx = 0, veerOy = 0;
+    int veerSide = 0; // +1 = veering right, -1 = left, 0 = none
+
     public enum AutoStates {
         IDLE,
         SHOOT_PRELOAD,
@@ -40,6 +45,8 @@ public class Far extends OpMode {
         WAIT_SCORE_SPIKE3,
         DECIDE_ZONE,
         GO_ZONE_PICKUP,
+        PICKUP_FAILSAFE,
+        WAIT_PICKUP_FAILSAFE,
         WAIT_ZONE_PICKUP,
         GO_SCORE_CYCLE,
         WAIT_SCORE_CYCLE,
@@ -103,6 +110,7 @@ public class Far extends OpMode {
         telemetry.addData("LL hasTarget", robot.limelight.hasTarget());
         telemetry.addData("Drive inPos", robot.blob.inPosition());
         telemetry.addData("outtake state", robot.outtake.outtakeState);
+        telemetry.addData("veerDecided", veerDecided);
         telemetry.update();
 
         switch (autoStates) {
@@ -190,15 +198,11 @@ public class Far extends OpMode {
                             poseIdx + FarConstants.zoneSpeedShiftPose));
                 }
                 chosenZonePose = constants.zonePoses[poseIdx];
+                veerDecided = false; veerOx = 0; veerOy = 0; veerSide = 0; // fresh veer decision for this pickup
                 setPathState(AutoStates.GO_ZONE_PICKUP);
                 break;
             case GO_ZONE_PICKUP:
-                robot.outtake.specificValues(constants.scorePose);
-                robot.blob.setTargetPosition(chosenZonePose);
-                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
-                if (pathFraction(constants.scorePose, chosenZonePose) >= constants.getCyclePickupSlowPercentage()) {
-                    robot.blob.maxPower = constants.getCyclePickupSlowPower();
-                }
+                commandZonePickupDrive();
                 if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 setPathState(AutoStates.WAIT_ZONE_PICKUP);
                 break;
@@ -304,5 +308,31 @@ public class Far extends OpMode {
         double py = robot.blob.odo.getY() - start.getY();
         double t = (px * dx + py * dy) / lenSq;
         return Math.max(0.0, Math.min(1.0, t));
+    }
+    
+    private void commandZonePickupDrive() {
+        robot.outtake.specificValues(constants.scorePose);
+        robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+
+        double frac = pathFraction(constants.scorePose, chosenZonePose);
+        if (frac >= constants.getCyclePickupSlowPercentage()) {
+            robot.blob.maxPower = constants.getCyclePickupSlowPower();
+        }
+
+
+        if (!veerDecided && frac >= constants.getRescanPercentage() && robot.limelight.hasTarget()) {
+            int lft = robot.limelight.getLeftCount();
+            int ctr = robot.limelight.getCenterCount();
+            int rgt = robot.limelight.getRightCount();
+            double h = robot.blob.odo.getHeading();
+            double rX = Math.sin(h), rY = -Math.cos(h); // robot's right in field coords
+            double sRight = constants.getSideShiftRightInches();
+            double sLeft = constants.getSideShiftLeftInches();
+            if (rgt > ctr && rgt >= lft) { veerOx = rX * sRight; veerOy = rY * sRight; veerSide = 1; veerDecided = true; }
+            else if (lft > ctr && lft > rgt) { veerOx = -rX * sLeft; veerOy = -rY * sLeft; veerSide = -1; veerDecided = true; }
+        }
+        double baseX = (veerSide > 0) ? robot.blob.odo.getX() : chosenZonePose.getX();
+        robot.blob.setTargetPosition(new Pose(baseX + veerOx, chosenZonePose.getY() + veerOy,
+                chosenZonePose.getHeading()));
     }
 }

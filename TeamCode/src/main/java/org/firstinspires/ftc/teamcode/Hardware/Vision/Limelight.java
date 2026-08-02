@@ -35,6 +35,8 @@ public class Limelight implements Module {
     public static int MAX_MISSED_FRAMES = 5;
     public static double VELOCITY_ALPHA = 0.3;
 
+    public static double SIDE_CENTER_HALF_DEG = 8.0;
+
     public static double LAMP_ON_POS = 1.0;
     public static double LAMP_OFF_POS = 0.0;
 
@@ -48,6 +50,7 @@ public class Limelight implements Module {
     private double avgZoneSpeed;
     private int zone = -1;
     private int[] zoneCountsOut = new int[0];
+    private int leftCount, centerCount, rightCount; // live view split
     private boolean hasTarget;
 
     private final List<Ball> tracks = new ArrayList<>();
@@ -124,15 +127,20 @@ public class Limelight implements Module {
         List<List<Ball>> zones = new ArrayList<>();
         for (int i = 0; i < nz; i++) zones.add(new ArrayList<>());
         int count = 0;
+        int lc = 0, cc = 0, rc = 0;
         for (Ball t : tracks) {
             if (t.missed != 0) continue;
             int z = zoneOf(t.cx, nz);
             zones.get(z).add(t);
             zoneCounts[z]++;
             count++;
+            if (t.cx < -SIDE_CENTER_HALF_DEG) lc++;
+            else if (t.cx > SIDE_CENTER_HALF_DEG) rc++;
+            else cc++;
         }
         ballCount = count;
         zoneCountsOut = zoneCounts;
+        leftCount = lc; centerCount = cc; rightCount = rc;
 
         boolean rawFound = false;
         double rawAvgSpeed = 0.0;
@@ -223,6 +231,9 @@ public class Limelight implements Module {
     public double getTx() { return tx; }
     public int getZone() { return zone; }
     public int[] getZoneCounts() { return zoneCountsOut; }
+    public int getLeftCount() { return leftCount; }
+    public int getCenterCount() { return centerCount; }
+    public int getRightCount() { return rightCount; }
     public double getBallCount() { return ballCount; }
     public boolean hasTarget() { return hasTarget; }
     public double getAvgZoneSpeed() { return avgZoneSpeed; }

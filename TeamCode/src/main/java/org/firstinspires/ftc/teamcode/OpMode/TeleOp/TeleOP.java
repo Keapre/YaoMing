@@ -212,11 +212,9 @@ public class TeleOP extends LinearOpMode
         if (gg.rightStickButtonOnce()) {
             Pose near = (Info.alliance == Alliance.RED) ? resetPoseRed : resetPoseBlue;
             Pose human = (Info.alliance == Alliance.RED) ? resetPoseRedHuman : resetPoseBlueHuman;
-            double cx = robot.blob.odo.getX();
-            double cy = robot.blob.odo.getY();
-            boolean humanCloser = Math.hypot(cx - human.getX(), cy - human.getY())
-                                < Math.hypot(cx - near.getX(), cy - near.getY());
-            robot.blob.odo.setPose(humanCloser ? human : near);
+            // Right stick alone -> human player reset; both triggers held + right stick -> the other reset.
+            boolean bothTriggers = gg.leftTrigger() && gg.rightTrigger();
+            robot.blob.odo.setPose(bothTriggers ? near : human);
             robot.outtake.turret.resetOffset();
             if (Info.alliance == Alliance.RED) {
                 robot.outtake.launcher.manualOffset = 0;

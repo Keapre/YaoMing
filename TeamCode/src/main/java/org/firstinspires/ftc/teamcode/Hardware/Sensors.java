@@ -770,6 +770,15 @@ public class Sensors {
         return getHowLongBeam1() > IntakeConstants.beam1stopDelay &&
                 getHowLongBeam2() > IntakeConstants.beam2stopDelay &&
                 getHowLongBeam3() > IntakeConstants.beam3StopDelay;
+    } public boolean areAllBeamsHighForTime() {
+        if (Info.phase == Phase.AUTONOMOUS) { ///TEST
+            return getHowLongBeam1() < IntakeConstants.beam1stopDelay * autoSensorBeam &&
+                    getHowLongBeam2() < IntakeConstants.beam2stopDelay * autoSensorBeam &&
+                    getHowLongBeam3() < IntakeConstants.beam3StopDelay * autoSensorBeam;
+        }
+        return getHowLongBeam1() < IntakeConstants.beam1stopDelay &&
+                getHowLongBeam2() < IntakeConstants.beam2stopDelay &&
+                getHowLongBeam3() < IntakeConstants.beam3StopDelay;
     }
     public void setTimeLatencyTurret(double timeLatency) {
         timeLatencyTurret = timeLatency;
