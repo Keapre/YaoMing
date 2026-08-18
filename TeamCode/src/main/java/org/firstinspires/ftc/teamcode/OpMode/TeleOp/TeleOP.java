@@ -85,7 +85,7 @@ public class TeleOP extends LinearOpMode
         robot.sensors.setUsePredictivePose(true);
         robot.sensors.setPoseAlign(false);
         motorTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
-        if (robot != null) robot.limelight.setLamp(false);
+        robot.limelight.setLamp(false);
 
         while(opModeIsActive())
         {

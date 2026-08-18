@@ -3,6 +3,7 @@ repositories {
     google() // Needed for androidx
     maven { url = 'https://maven.brott.dev/' }
     maven { url = "https://mymaven.bylazar.com/releases" }
+    maven { url = 'https://jitpack.io' } // blob path-following library
 
 }
 
@@ -22,6 +23,11 @@ dependencies {
     implementation 'com.pedropathing:telemetry:1.0.0'
 
     implementation 'com.bylazar:fullpanels:1.0.6'
+
+    // blob: using the local dev build in TeamCode/libs/blob-dev-v1.4.0.aar
+    // (see TeamCode/build.gradle). Re-enable this and remove the local aar once v1.4.0 is
+    // published to JitPack. Do NOT have both active — they duplicate the com.blob.* classes.
+    // implementation 'com.github.PzmuV1517:blob:v1.3.0'
 
 }
 

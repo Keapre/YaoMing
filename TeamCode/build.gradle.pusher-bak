@@ -24,7 +24,7 @@ android {
     }
 
     packagingOptions {
-        jniLibs.useLegacyPackaging false
+        jniLibs.useLegacyPackaging true
     }
 }
 
@@ -36,25 +36,3 @@ dependencies {
     // blob path follower. `pusher settings` manages this line.
     implementation files('libs/blob-dev-v1.4.0.aar')
 }
-
-// pusher extreme: begin - team code is reloaded, not packaged
-//
-// Remove this block, or run the menu entry that added it, to go back to
-// packaging team code in the APK.
-//
-// Kept in the APK anyway: org/firstinspires/ftc/teamcode/blob/localization/GoBildaPinpointDriver
-android {
-    sourceSets {
-        main {
-            java {
-                exclude { details ->
-                    def path = details.path
-                    !details.directory &&
-                        path.startsWith('org/firstinspires/ftc/teamcode/') &&
-                        !path.startsWith('org/firstinspires/ftc/teamcode/blob/localization/GoBildaPinpointDriver.')
-                }
-            }
-        }
-    }
-}
-// pusher extreme: end

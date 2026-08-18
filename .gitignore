@@ -80,3 +80,6 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 /TeamCode/src/main/java/org/firstinspires/ftc/teamcode/TODO.txt
+
+# blob library, kept out of the repository on purpose.
+TeamCode/libs/*.aar

@@ -24,7 +24,7 @@ public class FarConstants {
     public static double cycleIntakeUntilPercentage = 0.15;
     public static double cyclePickupSlowPercentage = 0.45;
     public static double cyclePickupSlowPower = 0.7;
-    public static double rescanPercentage = 0.5;
+    public static double rescanPercentage = 0.6;
     public static double sideShiftRightInches = 6.0; // lateral veer toward the robot's right
     public static double sideShiftLeftInches = 6.0;  // lateral veer toward the robot's left
     public static double hpIntakeUntilPercentage = 0.6;

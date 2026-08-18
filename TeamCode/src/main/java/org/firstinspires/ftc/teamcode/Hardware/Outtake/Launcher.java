@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.Hardware.Robot;
 import org.firstinspires.ftc.teamcode.Hardware.Sensors;
 import org.firstinspires.ftc.teamcode.Util.Caching.CachingDcMotorEx;
 import org.firstinspires.ftc.teamcode.Util.Caching.CachingServo;
+import org.firstinspires.ftc.teamcode.Util.Controllers.RSTFlywheelController;
 import org.firstinspires.ftc.teamcode.Util.Controllers.Team254FlywheelController;
 import org.firstinspires.ftc.teamcode.Util.Controllers.velocityController;
 import org.firstinspires.ftc.teamcode.Util.Filters.LowPassFilter;
@@ -70,7 +71,11 @@ public class Launcher implements Module {
     public static boolean rebuildTables = false;
 
     public static boolean use254 = false;
+    /** Swaps the flywheel feedback from the PID (velController) to the RST controller. */
+    public static boolean useRST = false;
     Team254FlywheelController velocityController254;
+    RSTFlywheelController rstController;
+    private double lastFlywheelTarget = 0;
     Robot robot;
     LowPassFilter filter;
 
@@ -94,6 +99,7 @@ public class Launcher implements Module {
         motor2.setDirection(DcMotorEx.Direction.FORWARD);
         velController = new velocityController();
         velocityController254 = new Team254FlywheelController();
+        rstController = new RSTFlywheelController();
 
         filter = new LowPassFilter(coffiecntLowPassFilter);
         this.sensors = sensors;
@@ -246,13 +252,13 @@ public class Launcher implements Module {
         switch (launcherState) {
             case OFF:
                 target = 0;
-                power = velController.calculate(target, currentVel, sensors.getVoltage());
+                power = flywheelPower(target, currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 break;
             case TUNE_PID:
                 target = tunePidTarget;
-                power = velController.calculate(tunePidTarget, currentVel, sensors.getVoltage());
+                power = flywheelPower(tunePidTarget, currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 break;
@@ -272,15 +278,8 @@ public class Launcher implements Module {
                             target_tilt = hood.get(Utils.minMaxClip(targetDistance, Distances[0], Distances[hoodValues.length - 1]));
 
                         }
-                        if (use254) {
-                            power = velocityController254.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
-                            target_tilt = hood.get(Utils.minMaxClip(targetDistance, Distances[0], Distances[hoodValues.length - 1]));
-
-                        } else {
-                            power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
-                            target_tilt = hood.get(Utils.minMaxClip(targetDistance, Distances[0], Distances[hoodValues.length - 1]));
-
-                        }
+                        power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
+                        target_tilt = hood.get(Utils.minMaxClip(targetDistance, Distances[0], Distances[hoodValues.length - 1]));
                     } else {
                         if (sensors.isFarZone()) {
                             power = idleVelocityFar;
@@ -308,11 +307,7 @@ public class Launcher implements Module {
                     }
                     target_tilt = hood.get(targetDistance);
                 }
-                if (use254) {
-                    power = velocityController254.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
-                } else {
-                    power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
-                }
+                power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
                 snapshotVoltage();
                 motor1.setPower(power);
                 motor2.setPower(power);
@@ -321,7 +316,7 @@ public class Launcher implements Module {
                 if (updateOffssetHood) {
                     target_tilt = hood.get(targetDistance);
                 }
-                power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
+                power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 break;
@@ -337,12 +332,12 @@ public class Launcher implements Module {
                     target = OuttakePositions.defaultVel;
                     target_tilt = 0.5;
                 }
-                power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
+                power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 break;
             case SPIN_UP:
-                power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
+                power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 if (auto_aim) {
@@ -369,23 +364,35 @@ public class Launcher implements Module {
                 }
 
 
-                if (use254) {
-                    power = velocityController254.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
-                } else {
-                    power = velController.calculate(getTargetWithOffset(), currentVel, shootingVoltage);
-                }
+                power = flywheelPower(getTargetWithOffset(), currentVel, shootingVoltage);
                 motor1.setPower(power * accelerationWeight);
                 motor2.setPower(power * accelerationWeight);
                 break;
             case RECYCLE:
                 target = recycleVelocity;
                 target_tilt = recycleTilt;
-                power = velController.calculate(getTargetWithOffset(), currentVel, sensors.getVoltage());
+                power = flywheelPower(getTargetWithOffset(), currentVel, sensors.getVoltage());
                 motor1.setPower(power);
                 motor2.setPower(power);
                 break;
         }
         tilt.setPosition(target_tilt + pickHoodOffset());
+    }
+
+    /**
+     * Single point of flywheel-controller selection. Priority: RST &gt; Team254 &gt; PID.
+     * When RST is active it is re-seeded as the wheel spins up from rest (target rising through ~0),
+     * so its integrator starts at the feedforward power instead of winding up from a cold state.
+     */
+    private double flywheelPower(double target, double current, double voltage) {
+        if (useRST) {
+            if (lastFlywheelTarget <= 1.0 && target > 1.0) rstController.reset();
+            lastFlywheelTarget = target;
+            return rstController.calculate(target, current, voltage);
+        }
+        lastFlywheelTarget = target;
+        if (use254) return velocityController254.calculate(target, current, voltage);
+        return velController.calculate(target, current, voltage);
     }
 
     private void updateEnergyUsage() {
