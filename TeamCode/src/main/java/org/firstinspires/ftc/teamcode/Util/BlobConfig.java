@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.blob.BlobParams;
 import com.blob.localization.GoBildaPinpointDriver;
 import com.blob.localization.Localizer;
+import com.blob.localization.OctoQuadFWv3Localizer;
 import com.blob.localization.OctoQuadLocalizer;
 import com.blob.localization.OctoQuadTwoWheelLocalizer;
 import com.blob.localization.PinpointLocalizer;
@@ -49,10 +50,23 @@ public class BlobConfig {
         PINPOINT_BUNDLED,
 
         /**
-         * OctoQuad MK2, fusing both pods with its own onboard IMU. Config entry: "OctoQuad".
-         * Needs octoQuadPortX/Y, the counts per mm, and the TCP offsets in MILLIMETRES.
+         * OctoQuad MK2 via the SDK's built-in driver. Config entry: "OctoQuadFTC".
+         *
+         * <p>If your board's firmware minor revision is newer than the SDK driver expects, this
+         * puts a permanent warning banner on the Driver Station even though nothing is wrong. Use
+         * {@link #OCTOQUAD_MK2_FWV3} instead in that case.
          */
         OCTOQUAD_MK2,
+
+        /**
+         * OctoQuad MK2 via blob's vendored copy of DigitalChickenLabs' firmware v3 driver.
+         * Config entry: "blob OctoQuad (FW v3)". This is what our robot runs.
+         *
+         * <p>Same board, same behaviour as {@link #OCTOQUAD_MK2}. The only difference is that a
+         * newer-minor firmware revision is logged rather than raised as a Driver Station banner,
+         * because a newer minor revision is backward compatible and nothing is actually broken.
+         */
+        OCTOQUAD_MK2_FWV3,
 
         /**
          * Any OctoQuad, including MK1, with heading from the Control Hub IMU. blob integrates the
@@ -63,7 +77,7 @@ public class BlobConfig {
     }
 
     /** Which of the above to build. The only line to change when swapping odometry hardware. */
-    public static LocalizerMode localizerMode = LocalizerMode.OCTOQUAD_MK2;
+    public static LocalizerMode localizerMode = LocalizerMode.OCTOQUAD_MK2_FWV3;
 
     // HardwareMap
     public static String leftFrontName = "fl";
@@ -104,8 +118,8 @@ public class BlobConfig {
 
     // OctoQuad geometry. Ignored unless localizerMode is one of the OCTOQUAD_ ones.
     public static String octoQuadName = "octoquad";
-    public static int octoQuadPortX = 0;   // forward-reading pod
-    public static int octoQuadPortY = 1;   // strafe-reading pod
+    public static int octoQuadPortX = 7;   // forward-reading pod
+    public static int octoQuadPortY = 0;   // strafe-reading pod
     /**
      * Counts per mm of pod travel. The Quickstart guide recommends MEASURING this by pushing the
      * robot a known distance rather than trusting the spec figure, because it depends on the wheel
@@ -117,7 +131,7 @@ public class BlobConfig {
      * Pod directions. Required: with the robot at 0 degrees, pushing it FORWARD must make the X pod
      * count up, and pushing it LEFT must make the Y pod count up. Expect to flip at least one.
      */
-    public static GoBildaPinpointDriver.EncoderDirection octoQuadXDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    public static GoBildaPinpointDriver.EncoderDirection octoQuadXDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
     public static GoBildaPinpointDriver.EncoderDirection octoQuadYDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
     /**
@@ -169,6 +183,8 @@ public class BlobConfig {
                 return new PinpointLocalizer(hardwareMap, params);
             case OCTOQUAD_MK2:
                 return new OctoQuadLocalizer(hardwareMap, params);
+            case OCTOQUAD_MK2_FWV3:
+                return new OctoQuadFWv3Localizer(hardwareMap, params);
             case OCTOQUAD_TWO_WHEEL:
                 return new OctoQuadTwoWheelLocalizer(hardwareMap, params);
             case PINPOINT_SDK:
