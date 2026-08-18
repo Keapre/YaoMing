@@ -63,7 +63,7 @@ public class BlobConfig {
     }
 
     /** Which of the above to build. The only line to change when swapping odometry hardware. */
-    public static LocalizerMode localizerMode = LocalizerMode.PINPOINT_SDK;
+    public static LocalizerMode localizerMode = LocalizerMode.OCTOQUAD_MK2;
 
     // HardwareMap
     public static String leftFrontName = "fl";
@@ -107,10 +107,22 @@ public class BlobConfig {
     public static int octoQuadPortX = 0;   // forward-reading pod
     public static int octoQuadPortY = 1;   // strafe-reading pod
     public static double octoQuadCountsPerMM = 19.89436789;   // goBILDA 4-bar; swingarm is 13.26291192
-    /** MK2 only, and in MILLIMETRES, unlike xOffset/yOffset above which are inches. */
-    public static double octoQuadTcpOffsetMM_X = -82.5;
-    public static double octoQuadTcpOffsetMM_Y = 109.35;
     public static boolean octoQuadInvertHeading = false;
+
+    /**
+     * TCP offsets are derived from xOffset/yOffset rather than typed in, because the conversion is
+     * not just inches to millimetres. The OctoQuad wants the vector from the mathematical TCP, where
+     * the two pods' lines of travel cross, to the point we actually want to track. Relative to the
+     * Pinpoint's per-pod offsets that swaps the axes and flips both signs:
+     *
+     *   octoQuadTcpOffsetMM_X = -yOffset * 25.4 = -109.354
+     *   octoQuadTcpOffsetMM_Y = -xOffset * 25.4 =  +82.500
+     *
+     * Doing it by hand and getting it wrong does not break straight lines. It makes the reported
+     * position wobble every time the robot turns, which reads like a PID problem.
+     *
+     * See the OctoQuad Localizer Quickstart, "Localizer TCP Offset".
+     */
     /** Two-wheel mode only. Pod offsets in INCHES, same measurements the Pinpoint uses. */
     public static double octoQuadTicksPerInch = 19.89436789 * 25.4;
 
@@ -178,9 +190,9 @@ public class BlobConfig {
         p.octoQuadPortY = octoQuadPortY;
         p.octoQuadCountsPerMM_X = octoQuadCountsPerMM;
         p.octoQuadCountsPerMM_Y = octoQuadCountsPerMM;
-        p.octoQuadTcpOffsetMM_X = octoQuadTcpOffsetMM_X;
-        p.octoQuadTcpOffsetMM_Y = octoQuadTcpOffsetMM_Y;
         p.octoQuadInvertHeading = octoQuadInvertHeading;
+        // Must come after xOffset/yOffset are set above; it reads them.
+        p.octoQuadOffsetsFromPinpoint();
         p.octoQuadTicksPerInch = octoQuadTicksPerInch;
         // The two-wheel localizer reuses the Pinpoint's pod geometry, so there is one set to tune.
         p.parallelPodYOffset = xOffset;
