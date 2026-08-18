@@ -106,7 +106,33 @@ public class BlobConfig {
     public static String octoQuadName = "octoquad";
     public static int octoQuadPortX = 0;   // forward-reading pod
     public static int octoQuadPortY = 1;   // strafe-reading pod
-    public static double octoQuadCountsPerMM = 19.89436789;   // goBILDA 4-bar; swingarm is 13.26291192
+    /**
+     * Counts per mm of pod travel. The Quickstart guide recommends MEASURING this by pushing the
+     * robot a known distance rather than trusting the spec figure, because it depends on the wheel
+     * as built, not on paper. This is the goBILDA 4-bar spec value; swingarm is 13.26291192.
+     */
+    public static double octoQuadCountsPerMM = 19.89436789;
+
+    /**
+     * Pod directions. Required: with the robot at 0 degrees, pushing it FORWARD must make the X pod
+     * count up, and pushing it LEFT must make the Y pod count up. Expect to flip at least one.
+     */
+    public static GoBildaPinpointDriver.EncoderDirection octoQuadXDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    public static GoBildaPinpointDriver.EncoderDirection octoQuadYDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+
+    /**
+     * Corrects the IMU reporting more or less rotation than actually happened. The guide calls
+     * calibrating this critical; a wrong scalar does not cause drift while still, it makes every
+     * turn come out the wrong size. Measure with DigitalChickenLabs' HeadingScalarCalibrator.
+     */
+    public static double octoQuadImuHeadingScalar = 1.0;
+
+    /** Hardware velocity averaging window, ms. Longer is smoother with more lag. */
+    public static int octoQuadVelocityIntervalMS = 25;
+
+    /** How long to wait for the MK2 IMU to finish calibrating at init, ms. */
+    public static long octoQuadInitTimeoutMs = 3000;
+
     public static boolean octoQuadInvertHeading = false;
 
     /**
@@ -190,6 +216,11 @@ public class BlobConfig {
         p.octoQuadPortY = octoQuadPortY;
         p.octoQuadCountsPerMM_X = octoQuadCountsPerMM;
         p.octoQuadCountsPerMM_Y = octoQuadCountsPerMM;
+        p.octoQuadXDirection = octoQuadXDirection;
+        p.octoQuadYDirection = octoQuadYDirection;
+        p.octoQuadImuHeadingScalar = octoQuadImuHeadingScalar;
+        p.octoQuadVelocityIntervalMS = octoQuadVelocityIntervalMS;
+        p.octoQuadInitTimeoutMs = octoQuadInitTimeoutMs;
         p.octoQuadInvertHeading = octoQuadInvertHeading;
         // Must come after xOffset/yOffset are set above; it reads them.
         p.octoQuadOffsetsFromPinpoint();
