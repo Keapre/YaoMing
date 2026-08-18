@@ -42,17 +42,15 @@ dependencies {
 // Remove this block, or run the menu entry that added it, to go back to
 // packaging team code in the APK.
 //
-// The Pinpoint driver used to be carved out of this exclusion, because the robot config needed an
-// @I2cDeviceType class in the APK and ours lived in TeamCode. blob ships its own driver inside the
-// AAR now, and an AAR is a dependency rather than team source, so it is packaged regardless. No
-// carve-out needed.
+// Kept in the APK anyway: nothing
 android {
     sourceSets {
         main {
             java {
                 exclude { details ->
                     def path = details.path
-                    !details.directory && path.startsWith('org/firstinspires/ftc/teamcode/')
+                    !details.directory &&
+                        path.startsWith('org/firstinspires/ftc/teamcode/')
                 }
             }
         }

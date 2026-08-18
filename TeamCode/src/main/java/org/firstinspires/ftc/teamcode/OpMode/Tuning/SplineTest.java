@@ -8,7 +8,7 @@ import com.blob.Blob;
 import com.blob.BlobParams;
 import com.blob.geometry.PathGeometry;
 import com.blob.geometry.Pose;
-import com.blob.localization.SdkPinpointLocalizer;
+import com.blob.localization.Localizer;
 import org.firstinspires.ftc.teamcode.Util.BlobConfig;
 
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
@@ -53,7 +53,7 @@ public class SplineTest extends LinearOpMode {
         GamePadController gg = new GamePadController(gamepad1);
 
         BlobParams params = BlobConfig.params();
-        SdkPinpointLocalizer localizer = new SdkPinpointLocalizer(hardwareMap, params);
+        Localizer localizer = BlobConfig.localizer(hardwareMap, params);
         Blob blob = new Blob(hardwareMap, params, localizer, Blob.State.PID);
         blob.drawCurrentPath = true;                          // library draws the path to Dashboard
 

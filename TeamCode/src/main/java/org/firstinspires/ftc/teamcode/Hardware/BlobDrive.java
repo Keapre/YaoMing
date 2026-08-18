@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.blob.Blob;
 import com.blob.BlobParams;
 import com.blob.geometry.PedroAdapter;
-import com.blob.localization.SdkPinpointLocalizer;
+import org.firstinspires.ftc.teamcode.Util.BlobConfig;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -31,10 +31,9 @@ public class BlobDrive extends Blob {
     private final DcMotorEx flEncoder;
 
     public BlobDrive(HardwareMap hardwareMap, BlobParams params, Blob.State initialState) {
-        // SdkPinpointLocalizer, not PinpointLocalizer: it drives the SDK's own Pinpoint driver, so
-        // the robot config keeps its stock "goBILDA Pinpoint Odometry Computer" entry. blob's
-        // bundled driver would need that entry changed to "blob Pinpoint (goBILDA)" on the hub.
-        super(hardwareMap, params, new SdkPinpointLocalizer(hardwareMap, params), initialState);
+        // Which odometry hardware this is comes from BlobConfig.localizerMode, so swapping a
+        // Pinpoint for an OctoQuad is one enum, not a code change here.
+        super(hardwareMap, params, BlobConfig.localizer(hardwareMap, params), initialState);
         // Same device the follower drives. hardwareMap hands back the same instance, so this is a
         // second reference, not a second motor.
         flEncoder = hardwareMap.get(DcMotorEx.class, params.leftFrontName);

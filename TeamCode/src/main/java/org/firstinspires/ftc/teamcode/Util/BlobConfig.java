@@ -3,8 +3,13 @@ package org.firstinspires.ftc.teamcode.Util;
 import com.acmerobotics.dashboard.config.Config;
 import com.blob.BlobParams;
 import com.blob.localization.GoBildaPinpointDriver;
+import com.blob.localization.Localizer;
+import com.blob.localization.OctoQuadLocalizer;
+import com.blob.localization.OctoQuadTwoWheelLocalizer;
+import com.blob.localization.PinpointLocalizer;
 import com.blob.localization.SdkPinpointLocalizer;
 import com.blob.tuning.TuningConfig;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
 
@@ -22,6 +27,43 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
  */
 @Config
 public class BlobConfig {
+
+    /**
+     * Which odometry hardware to localize from. Every one of these is two pods plus an IMU; they
+     * differ in whose IMU it is and who fuses it.
+     *
+     * <p>Changing this is not enough on its own. Each mode needs a matching entry in the robot
+     * config, and the OctoQuad modes need their pod geometry filled in below.
+     */
+    public enum LocalizerMode {
+        /**
+         * goBILDA Pinpoint via the SDK's own driver. Config entry: "goBILDA Pinpoint Odometry
+         * Computer". This is what our robot runs, and it needs nothing changed on the hub.
+         */
+        PINPOINT_SDK,
+
+        /**
+         * goBILDA Pinpoint via blob's bundled driver. Config entry: "blob Pinpoint (goBILDA)".
+         * Only for SDKs older than 10.2, which have no built-in Pinpoint driver.
+         */
+        PINPOINT_BUNDLED,
+
+        /**
+         * OctoQuad MK2, fusing both pods with its own onboard IMU. Config entry: "OctoQuad".
+         * Needs octoQuadPortX/Y, the counts per mm, and the TCP offsets in MILLIMETRES.
+         */
+        OCTOQUAD_MK2,
+
+        /**
+         * Any OctoQuad, including MK1, with heading from the Control Hub IMU. blob integrates the
+         * pods itself. Needs an "imu" in the config, the hub orientation, and the pod offsets in
+         * INCHES.
+         */
+        OCTOQUAD_TWO_WHEEL
+    }
+
+    /** Which of the above to build. The only line to change when swapping odometry hardware. */
+    public static LocalizerMode localizerMode = LocalizerMode.PINPOINT_SDK;
 
     // HardwareMap
     public static String leftFrontName = "fl";
@@ -60,6 +102,18 @@ public class BlobConfig {
      */
     public static boolean usePredictiveDecel = false;
 
+    // OctoQuad geometry. Ignored unless localizerMode is one of the OCTOQUAD_ ones.
+    public static String octoQuadName = "octoquad";
+    public static int octoQuadPortX = 0;   // forward-reading pod
+    public static int octoQuadPortY = 1;   // strafe-reading pod
+    public static double octoQuadCountsPerMM = 19.89436789;   // goBILDA 4-bar; swingarm is 13.26291192
+    /** MK2 only, and in MILLIMETRES, unlike xOffset/yOffset above which are inches. */
+    public static double octoQuadTcpOffsetMM_X = -82.5;
+    public static double octoQuadTcpOffsetMM_Y = 109.35;
+    public static boolean octoQuadInvertHeading = false;
+    /** Two-wheel mode only. Pod offsets in INCHES, same measurements the Pinpoint uses. */
+    public static double octoQuadTicksPerInch = 19.89436789 * 25.4;
+
     // Curves
     public static double splineLookahead = 6.0;
     public static int splineSamples = 64;
@@ -69,6 +123,21 @@ public class BlobConfig {
      * competition one has no recorder to switch on.
      */
     public static boolean recordTrace = false;
+
+    /** Builds the localizer for {@link #localizerMode}. */
+    public static Localizer localizer(HardwareMap hardwareMap, BlobParams params) {
+        switch (localizerMode) {
+            case PINPOINT_BUNDLED:
+                return new PinpointLocalizer(hardwareMap, params);
+            case OCTOQUAD_MK2:
+                return new OctoQuadLocalizer(hardwareMap, params);
+            case OCTOQUAD_TWO_WHEEL:
+                return new OctoQuadTwoWheelLocalizer(hardwareMap, params);
+            case PINPOINT_SDK:
+            default:
+                return new SdkPinpointLocalizer(hardwareMap, params);
+        }
+    }
 
     /** A fresh params object with everything above applied. */
     public static BlobParams params() {
@@ -104,6 +173,19 @@ public class BlobConfig {
         p.yPodDirection = yPodDirection;
         p.podType = podType;
 
+        p.octoQuadName = octoQuadName;
+        p.octoQuadPortX = octoQuadPortX;
+        p.octoQuadPortY = octoQuadPortY;
+        p.octoQuadCountsPerMM_X = octoQuadCountsPerMM;
+        p.octoQuadCountsPerMM_Y = octoQuadCountsPerMM;
+        p.octoQuadTcpOffsetMM_X = octoQuadTcpOffsetMM_X;
+        p.octoQuadTcpOffsetMM_Y = octoQuadTcpOffsetMM_Y;
+        p.octoQuadInvertHeading = octoQuadInvertHeading;
+        p.octoQuadTicksPerInch = octoQuadTicksPerInch;
+        // The two-wheel localizer reuses the Pinpoint's pod geometry, so there is one set to tune.
+        p.parallelPodYOffset = xOffset;
+        p.perpendicularPodXOffset = yOffset;
+
         p.splineLookahead = splineLookahead;
         p.splineSamples = splineSamples;
         p.recordTrace = recordTrace;
@@ -116,6 +198,6 @@ public class BlobConfig {
     @OpModeRegistrar
     public static void registerTuning(OpModeManager manager) {
         TuningConfig.useParams(BlobConfig::params);
-        TuningConfig.useLocalizer(SdkPinpointLocalizer::new);
+        TuningConfig.useLocalizer(BlobConfig::localizer);
     }
 }
