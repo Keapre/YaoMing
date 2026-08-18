@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.Hardware.Outtake.OuttakePositions;
 import org.firstinspires.ftc.teamcode.Util.Math.Debouncer;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.CachingVoltageSensor;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.InterpLUT;
-import org.firstinspires.ftc.teamcode.blob.math.LowPassFilter;
+import com.blob.control.LowPassFilter;
 
 @Config
 public class Sensors {

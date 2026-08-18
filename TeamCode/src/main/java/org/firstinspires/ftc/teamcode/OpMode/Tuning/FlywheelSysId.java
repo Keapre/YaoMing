@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.blob.constants.BlobConstants;
+import org.firstinspires.ftc.teamcode.Util.BlobConfig;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -76,7 +76,7 @@ public class FlywheelSysId extends LinearOpMode {
         DcMotorEx shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
         DcMotorEx shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         // Flywheel encoder lives on the front-left drivetrain port. We read it, we do not drive it.
-        DcMotorEx flEncoder = hardwareMap.get(DcMotorEx.class, BlobConstants.leftFrontName);
+        DcMotorEx flEncoder = hardwareMap.get(DcMotorEx.class, BlobConfig.leftFrontName);
         VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
 
         shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

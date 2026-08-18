@@ -77,7 +77,7 @@ public class auto27btc extends OpMode {
 
     @Override
     public void init_loop() {
-        robot.blob.odo.setPose(constants.startPose);
+        robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         robot.sensors.update();
         robot.outtake.primeAimForAuto();
@@ -86,10 +86,10 @@ public class auto27btc extends OpMode {
     @Override
     public void start() {
         //robot.sensors.setPoseAlign(true);
-        robot.blob.odo.setPose(constants.startPose);
+        robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         double startHeading = robot.blob.odo.getHeading();
-        robot.blob.targetHeading = (startHeading < 0) ? Math.abs(startHeading) : (2 * Math.PI - startHeading);
+        robot.blob.turnToRadians((startHeading < 0) ? Math.abs(startHeading) : (2 * Math.PI - startHeading));
         pathTimer = new Timer();
         gateCycleCounter = 0;
         setPathState(AutoStates.GO_TO_SCORE_FROM_START);
@@ -319,9 +319,9 @@ public class auto27btc extends OpMode {
                 }
                 break;
         }
-        TelemetryUtil.packet.put("x", robot.blob.odo.x);
-        TelemetryUtil.packet.put("y", robot.blob.odo.y);
-        TelemetryUtil.packet.put("heading", robot.blob.odo.heading);
+        TelemetryUtil.packet.put("x", robot.blob.odo.getX());
+        TelemetryUtil.packet.put("y", robot.blob.odo.getY());
+        TelemetryUtil.packet.put("heading", robot.blob.odo.getHeading());
         TelemetryUtil.sendTelemetry();
         prevAutoStates = autoStates;
         robot.update();

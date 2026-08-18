@@ -73,7 +73,7 @@ public class Close18LastStack extends OpMode {
 
     @Override
     public void start() {
-        robot.blob.odo.setPose(constants.startPose);
+        robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         pathTimer = new Timer();
         gateCycleCounter = 0;
@@ -321,9 +321,9 @@ public class Close18LastStack extends OpMode {
                 }
                 break;
         }
-        TelemetryUtil.packet.put("x", robot.blob.odo.x);
-        TelemetryUtil.packet.put("y", robot.blob.odo.y);
-        TelemetryUtil.packet.put("heading", robot.blob.odo.heading);
+        TelemetryUtil.packet.put("x", robot.blob.odo.getX());
+        TelemetryUtil.packet.put("y", robot.blob.odo.getY());
+        TelemetryUtil.packet.put("heading", robot.blob.odo.getHeading());
         TelemetryUtil.sendTelemetry();
         prevAutoStates = autoStates;
         robot.update();

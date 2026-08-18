@@ -20,7 +20,9 @@ import org.firstinspires.ftc.teamcode.Hardware.Outtake.Launcher;
 import org.firstinspires.ftc.teamcode.OpMode.TeleOp.TeleOP;
 import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
 import org.firstinspires.ftc.teamcode.Util.Info;
-import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
+import com.blob.Blob;
+import com.blob.BlobParams;
+import org.firstinspires.ftc.teamcode.Util.BlobConfig;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
@@ -37,7 +39,9 @@ public class Robot {
     public IntakeTransfer intakeTransfer;
     public Outtake outtake;
     public Sensors sensors;
-    public Blob blob = null;
+    public BlobDrive blob = null;
+    /** Live config for blob. BlobConfig.sync() refreshes it each loop so dashboard edits apply. */
+    public BlobParams blobParams;
     public Limelight limelight;
     public OpMode op;
     public static boolean showTelemetry = false;
@@ -62,7 +66,8 @@ public class Robot {
         cHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         this.op = op;
         this.hw = op.hardwareMap;
-        blob = new Blob(op.hardwareMap, Blob.State.PID);
+        blobParams = BlobConfig.params();
+        blob = new BlobDrive(op.hardwareMap, blobParams, Blob.State.PID);
         sensors = new Sensors(this);
         intakeTransfer = new IntakeTransfer(this,sensors);
         outtake = new Outtake(this,sensors);
@@ -84,6 +89,10 @@ public class Robot {
 
         // Profile Blob
         t1 = System.nanoTime();
+        // The library reads gains off the params instance every loop, so refreshing it here is what
+        // keeps the dashboard sliders live now that the constants are no longer static on Blob.
+        BlobConfig.sync(blobParams);
+        blob.usePredictiveDecel = BlobConfig.usePredictiveDecel;
         blob.update();
 
         // Profile Sensors

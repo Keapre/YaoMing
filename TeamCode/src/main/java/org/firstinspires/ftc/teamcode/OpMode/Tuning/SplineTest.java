@@ -8,10 +8,10 @@ import com.blob.Blob;
 import com.blob.BlobParams;
 import com.blob.geometry.PathGeometry;
 import com.blob.geometry.Pose;
-import com.blob.localization.Localizer;
+import com.blob.localization.SdkPinpointLocalizer;
+import org.firstinspires.ftc.teamcode.Util.BlobConfig;
 
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
-import org.firstinspires.ftc.teamcode.blob.localization.Odometry;
 
 /**
  * Spline test for the published {@code com.blob} library.
@@ -52,9 +52,8 @@ public class SplineTest extends LinearOpMode {
     public void runOpMode() {
         GamePadController gg = new GamePadController(gamepad1);
 
-        BlobParams params = new BlobParams();                 // motor names default to fl/bl/fr/br
-        Odometry odo = new Odometry(hardwareMap);             // reuses the configured "pinpoint"
-        Localizer localizer = new OdometryLocalizer(odo);
+        BlobParams params = BlobConfig.params();
+        SdkPinpointLocalizer localizer = new SdkPinpointLocalizer(hardwareMap, params);
         Blob blob = new Blob(hardwareMap, params, localizer, Blob.State.PID);
         blob.drawCurrentPath = true;                          // library draws the path to Dashboard
 
@@ -119,29 +118,5 @@ public class SplineTest extends LinearOpMode {
             if (path != null) telemetry.addData("path length", "%.1f", path.getLength());
             telemetry.update();
         }
-    }
-
-    /** Adapts this robot's in-tree {@link Odometry} to the library {@link Localizer}. */
-    private static final class OdometryLocalizer implements Localizer {
-        private final Odometry odo;
-
-        OdometryLocalizer(Odometry odo) { this.odo = odo; }
-
-        @Override public void update() { odo.update(); }
-        @Override public double getX() { return odo.getX(); }
-        @Override public double getY() { return odo.getY(); }
-        @Override public double getHeading() { return odo.getHeading(); }
-        @Override public double getRealHeading() { return odo.getRealHeading(); }
-        @Override public double getVelX() { return odo.getVelX(); }
-        @Override public double getVelY() { return odo.getVelY(); }
-        @Override public double getAngularVelocity() { return odo.getAngularVelocity(); }
-        @Override public double getSpeedTranslational() { return odo.getSpeedTranslational(); }
-        @Override public double getPredictedX() { return odo.predictedX; }
-        @Override public double getPredictedY() { return odo.predictedY; }
-        @Override public Pose getPose() { return new Pose(odo.getX(), odo.getY(), odo.getHeading()); }
-        @Override public void setPose(Pose p) {
-            odo.setPose(new com.pedropathing.geometry.Pose(p.getX(), p.getY(), p.getHeading()));
-        }
-        @Override public void reset() { odo.reset(); }
     }
 }

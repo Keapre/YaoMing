@@ -79,7 +79,7 @@ public class Far extends OpMode {
 
     @Override
     public void init_loop() {
-        robot.blob.odo.setPose(constants.startPose);
+        robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         robot.sensors.update();
         robot.outtake.primeAimForAuto();
@@ -90,10 +90,10 @@ public class Far extends OpMode {
 
     @Override
     public void start() {
-        robot.blob.odo.setPose(constants.startPose);
+        robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         double startHeading = robot.blob.odo.getHeading();
-        robot.blob.targetHeading = (startHeading < 0) ? Math.abs(startHeading) : (2 * Math.PI - startHeading);
+        robot.blob.turnToRadians((startHeading < 0) ? Math.abs(startHeading) : (2 * Math.PI - startHeading));
         pathTimer = new Timer();
         cycleCounter = 0;
         timerAuto = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -259,9 +259,9 @@ public class Far extends OpMode {
                 break;
         }
 
-        TelemetryUtil.packet.put("x", robot.blob.odo.x);
-        TelemetryUtil.packet.put("y", robot.blob.odo.y);
-        TelemetryUtil.packet.put("heading", robot.blob.odo.heading);
+        TelemetryUtil.packet.put("x", robot.blob.odo.getX());
+        TelemetryUtil.packet.put("y", robot.blob.odo.getY());
+        TelemetryUtil.packet.put("heading", robot.blob.odo.getHeading());
         TelemetryUtil.sendTelemetry();
         prevAutoStates = autoStates;
         robot.update();

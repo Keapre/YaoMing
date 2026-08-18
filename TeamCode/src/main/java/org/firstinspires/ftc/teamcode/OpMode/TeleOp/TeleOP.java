@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Util.Globals.Alliance;
 import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
 import org.firstinspires.ftc.teamcode.Util.Info;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
-import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
+import com.blob.Blob;
 
 
 @Config
@@ -75,7 +75,7 @@ public class TeleOP extends LinearOpMode
         gg2 = new GamePadController(gamepad2);
 
 
-        robot.blob.odo.setPose(startPose);
+        robot.blob.setPose(startPose);
         robot.blob.odo.update();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -214,7 +214,7 @@ public class TeleOP extends LinearOpMode
             Pose human = (Info.alliance == Alliance.RED) ? resetPoseRedHuman : resetPoseBlueHuman;
             // Right stick alone -> human player reset; both triggers held + right stick -> the other reset.
             boolean bothTriggers = gg.leftTrigger() && gg.rightTrigger();
-            robot.blob.odo.setPose(bothTriggers ? near : human);
+            robot.blob.setPose(bothTriggers ? near : human);
             robot.outtake.turret.resetOffset();
             if (Info.alliance == Alliance.RED) {
                 robot.outtake.launcher.manualOffset = 0;
@@ -222,7 +222,7 @@ public class TeleOP extends LinearOpMode
         }
         if (gg.dpadDown()) {
             if(gg.leftTrigger() && gg.rightTrigger()){
-                robot.blob.odo.setPose(resetCenter);
+                robot.blob.setPose(resetCenter);
                 robot.outtake.turret.resetOffset();
             }
         }

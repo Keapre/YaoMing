@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
-import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
+import com.blob.Blob;
 
 @Config
 @Autonomous(name = "Limelight Ball Chase")

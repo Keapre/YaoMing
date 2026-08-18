@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Hardware.Robot;
 import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
 import org.firstinspires.ftc.teamcode.Util.Info;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.GamePadController;
-import org.firstinspires.ftc.teamcode.blob.driveTrain.Blob;
+import com.blob.Blob;
 
 @Config
 @TeleOp
@@ -51,7 +51,7 @@ public class TuneShooterPid extends LinearOpMode {
             }
             if (gg.dpadDown()) {
                 if(gg.leftTrigger() && gg.rightTrigger()){
-                    robot.blob.odo.setPose(resetCenter);
+                    robot.blob.setPose(resetCenter);
                 }
             }
             Outtake.OuttakeState state = robot.outtake.outtakeState;
