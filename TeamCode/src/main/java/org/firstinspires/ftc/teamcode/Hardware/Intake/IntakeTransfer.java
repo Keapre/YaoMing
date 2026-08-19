@@ -25,9 +25,7 @@ import org.firstinspires.ftc.teamcode.Util.Wrapper.BinaryDeque;
 public class IntakeTransfer implements Module {
     public CachingDcMotorEx intake, conveyor;
     private Robot robot;
-    CachingServo powerArm;
     CachingServo blocker;
-    CachingServo capac;
 
     public static boolean useStall = false;
     public boolean stallTriggeredThisLoop = false;
@@ -63,13 +61,7 @@ public class IntakeTransfer implements Module {
         BLOCKER_ACTUALLY_OPEN
     }
 
-    public enum PowerArmState {
-        BLEG,
-        INTAKE,
-        LOW,
-        RECYCLE,
-        TRANSFER
-    }
+
 
     public enum StallCheck {
         IDLE,
@@ -90,24 +82,14 @@ public class IntakeTransfer implements Module {
         REVERSE
     }
 
-    public enum CapacState {
-        BLEG,
-        RECYCLE,
-        WIGGLEWIGGLEWIGGLE
-    }
-
     public StallCheck stallCheck = StallCheck.IDLE;
 
     public IntakeState intakeState = IntakeState.OFF;
     public IntakeState lastintakeState = IntakeState.OFF_OPEN;
     public BlockerState blockerState = BlockerState.CLOSE;
     public BlockerState lastblockerState = BlockerState.OPEN;
-    public PowerArmState powerArmState = PowerArmState.INTAKE;
-    public PowerArmState lastpowerArmState = PowerArmState.LOW;
     public ConveyorState conveyorState = ConveyorState.OFF;
     public ConveyorState lastconveyorState = ConveyorState.ON;
-    public CapacState capacState = CapacState.BLEG;
-    public CapacState lastcapacState = CapacState.WIGGLEWIGGLEWIGGLE;
     long startSleep = 0;
     double sleeptime = 0;
     public double intakeSensorCounter = 0;
@@ -125,9 +107,7 @@ public class IntakeTransfer implements Module {
         intake = new CachingDcMotorEx(robot.hw.get(DcMotorEx.class, "intake"), 0.007);
         conveyor = new CachingDcMotorEx(robot.hw.get(DcMotorEx.class, "transfer"), 0.007);
 
-        powerArm = new CachingServo(robot.hw.get(Servo.class, "powerArm"));
         blocker = new CachingServo(robot.hw.get(Servo.class, "blocker"));
-        capac = new CachingServo(robot.hw.get(Servo.class, "capac"));
         HardwareUtils.unlock(intake);
         HardwareUtils.unlock(conveyor);
         intake.setCurrentAlert(IntakeConstants.intakeAmpsThreshold, CurrentUnit.AMPS);
@@ -155,7 +135,6 @@ public class IntakeTransfer implements Module {
         switch (intakeState) {
             case OFF:
                 blockerState = BlockerState.CLOSE;
-                powerArmState = PowerArmState.INTAKE;
                 intake.setPower(0);
                 conveyorState = ConveyorState.OFF;
                 if (robot.sensors.lightColor == Sensors.LightColor.BLUE) {
@@ -163,10 +142,8 @@ public class IntakeTransfer implements Module {
                 }
                 break;
             case PRE_OFF_OPEN:
-                powerArmState = PowerArmState.INTAKE;
                 intake.setPower(0);
                 conveyorState = ConveyorState.REVERSE_LITTLE;
-                capacState = CapacState.BLEG;
                 if (pre_off_open == null) {
                     pre_off_open = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
                 }
@@ -177,25 +154,17 @@ public class IntakeTransfer implements Module {
                 break;
             case OFF_OPEN:
                 blockerState = BlockerState.BLOCKER_ACTUALLY_OPEN;
-                powerArmState = PowerArmState.INTAKE;
                 intake.setPower(0);
                 conveyorState = ConveyorState.REVERSE_LITTLE;
 
-                capacState = CapacState.BLEG;
                 break;
             case INTAKE:
                 robot.sensors.setLedColor(Sensors.LightColor.RED);
                 blockerState = BlockerState.CLOSE;
-                capacState = CapacState.BLEG;
-                powerArmState = PowerArmState.INTAKE;
                 intake.setPower(IntakeConstants.intakePowerIntake);
-                if ((robot.sensors.isBreakBeamPos3Low() && robot.sensors.getHowLongBeam3() > IntakeConstants.beam3StopDelay) || beamChecked) {
-
-
-                    conveyorState = ConveyorState.OFF;
+                conveyorState = ConveyorState.OFF;
+                if (robot.sensors.isBreakBeamPos3Low() && robot.sensors.getHowLongBeam3() > IntakeConstants.beam3StopDelay) {
                     beamChecked = true;
-                } else {
-                    conveyorState = ConveyorState.ON;
                 }
                 if (robot.sensors.areAllBeamsLowForTime() && beamChecked) {
                     robot.op.gamepad1.rumble(250);
@@ -210,13 +179,10 @@ public class IntakeTransfer implements Module {
                 blockerState = BlockerState.CLOSE;
                 intake.setPower(-IntakeConstants.reversePower);
                 conveyorState = ConveyorState.REVERSE;
-                capacState = CapacState.BLEG;
                 break;
             case START_TRANSFER:
                 intake.setPower(0);
-                powerArmState = PowerArmState.LOW;
                 conveyorState = ConveyorState.OFF;
-                capacState = CapacState.BLEG;
                 robot.sensors.setLedColor(Sensors.LightColor.BLUE);
                 blockerState = BlockerState.BLOCKER_ACTUALLY_OPEN;
                 robot.outtake.launcher.snapshotVoltage();
@@ -230,8 +196,6 @@ public class IntakeTransfer implements Module {
                 if (recycleStartTimer == null) {
                     recycleStartTimer = new ElapsedTime();
                 }
-                capacState = CapacState.RECYCLE;
-                powerArmState = PowerArmState.INTAKE;
                 intake.setPower(IntakeConstants.intakeFirstPhase);
                 conveyorState = ConveyorState.recycle1;
                 robot.outtake.launcher.autoAimOn(false);
@@ -239,7 +203,6 @@ public class IntakeTransfer implements Module {
                 robot.outtake.setOuttakeState(Outtake.OuttakeState.OFF);
                 robot.outtake.flywheelSpin(OuttakePositions.recycleSpeed);
                 if (robot.outtake.launcher.isReady() && recycleStartTimer.milliseconds() > IntakeConstants.timerRecycleFirstPhase) {
-                    powerArmState = PowerArmState.INTAKE;
                     intakeState = IntakeState.ReCycleMid;
                     recycleStartTimer = null;
                 }
@@ -255,7 +218,6 @@ public class IntakeTransfer implements Module {
                     intake.setPower(IntakeConstants.intakeSecondPhase);
                 }
                 if (recycleMidTimer.milliseconds() > IntakeConstants.timerRecycleOpenBlocker + IntakeConstants.powerArmRecycleUp) {
-                    powerArmState = PowerArmState.RECYCLE;
                 }
                 if (!two &&
                         recycleMidTimer.milliseconds() > IntakeConstants.timerRecycleOpenBlocker + IntakeConstants.timerRecycleOne) {
@@ -289,7 +251,6 @@ public class IntakeTransfer implements Module {
                         robot.outtake.launcher.autoAimOn(true);
                         robot.outtake.turret.turretState = Turret.TurretState.TRACKING;
                     }
-                    powerArmState = PowerArmState.TRANSFER;
                 }
                 if (recycleEndTimer.milliseconds() > IntakeConstants.timerIntakeEnd + IntakeConstants.timerIntakeEnd2 + IntakeConstants.doneTransfer) {
                     intakeState = IntakeState.OFF;
@@ -297,11 +258,9 @@ public class IntakeTransfer implements Module {
 
                 break;
             case POWER_FOR_TIME:
-                powerArmState = PowerArmState.LOW;
                 intake.setPower(power_time);
                 conveyorState = ConveyorState.POWER_FOR_TIME;
                 sleep(time_power, IntakeState.OFF_OPEN);
-                capacState = CapacState.BLEG;
                 break;
             case TRANSFER:
 
@@ -310,9 +269,7 @@ public class IntakeTransfer implements Module {
                 } else {
                     intake.setPower(IntakeConstants.transferPowerIntake);
                 }
-                powerArmState = PowerArmState.TRANSFER;
                 conveyorState = ConveyorState.TRANSFER;
-                capacState = CapacState.BLEG;
                 break;
             case SLEEP:
                 //Log.w("Debug shoot precise", " " + (System.currentTimeMillis() - startSleep));
@@ -321,8 +278,6 @@ public class IntakeTransfer implements Module {
                 }
                 break;
             case RECYCLE:
-                capacState = CapacState.RECYCLE;
-                powerArmState = PowerArmState.RECYCLE;
                 intake.setPower(IntakeConstants.intakePowerRecycle);
                 conveyorState = ConveyorState.ON;
                 blockerState = BlockerState.OPEN;
@@ -353,32 +308,6 @@ public class IntakeTransfer implements Module {
         }
 
         lastblockerState = blockerState;
-        switch (powerArmState) {
-            case LOW:
-                powerArm.setPosition(IntakeConstants.powerArmLow);
-                break;
-            case INTAKE:
-                powerArm.setPosition(IntakeConstants.powerArmIntake);
-                break;
-            case RECYCLE:
-                powerArm.setPosition(IntakeConstants.powerArmRecycle);
-                break;
-            case TRANSFER:
-                powerArm.setPosition(IntakeConstants.powerArmVeryLow);
-                break;
-        }
-        lastpowerArmState = powerArmState;
-        switch (capacState) {
-            case BLEG:
-                capac.setPosition(IntakeConstants.capacBleg);
-                break;
-            case RECYCLE:
-                capac.setPosition(IntakeConstants.capacRecycle);
-                break;
-            case WIGGLEWIGGLEWIGGLE:
-                //Wiggle Wiggle Wiggle, du-tu-tu du du du, Wiggle Wiggle Wiggle...
-                break;
-        }
         if (conveyorState != lastconveyorState) {
             switch (conveyorState) {
                 case REVERSE_LITTLE:
@@ -443,10 +372,6 @@ public class IntakeTransfer implements Module {
 
     public void setBlockerState(BlockerState blockerState) {
         this.blockerState = blockerState;
-    }
-
-    public void setpowerArmState(PowerArmState state) {
-        this.powerArmState = state;
     }
 
     public void increaseIntakeServo(double delta) {
