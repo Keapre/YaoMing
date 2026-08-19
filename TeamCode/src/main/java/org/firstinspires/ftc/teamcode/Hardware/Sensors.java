@@ -127,8 +127,8 @@ public class Sensors {
     // --- SOTM / TURRET PREDICTION VARIABLES ---
     public static double ACCEL_COMP_FACTOR = 0;     // Multiplier for the 0.5*a*t^2 term
     public static double ACCEL_COMP_FACTOR_RPM = 0.17;     // Multiplier for the 0.5*a*t^2 term
-    public static double SOTM_GAIN = 1.25;            // Multiplier for physical momentum loss
-    public static double SHOOTER_FEEDER_DELAY = 0.05; // Sec: Delay from 'fire' to ball exit
+    public static double SOTM_GAIN = 1.30;            // Multiplier for physical momentum loss
+    public static double SHOOTER_FEEDER_DELAY = 0.05; // Sec: De lay from 'fire' to ball exit
     public static double TURRET_MECH_LOOKAHEAD_S = 0.1; // Sec: Delay for Turret slew lag
     public static double VELO_THRESHOLD = 4.0;        // Rad/s: Deadband for lookahead
     public static double PHYSICS_SHOT_TIME_EPS = 0.05;// Convergence threshold for the solver
