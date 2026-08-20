@@ -34,5 +34,5 @@ dependencies {
     implementation 'org.ftclib.ftclib:core:2.1.1'
 
     // blob path follower. `pusher settings` manages this line.
-    implementation files('libs/blob-dev-v1.5.0.aar')
+    implementation files('libs/blob-dev-v1.6.0.aar')
 }

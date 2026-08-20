@@ -135,17 +135,26 @@ public class BlobConfig {
     public static GoBildaPinpointDriver.EncoderDirection octoQuadYDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
     /**
-     * Corrects the IMU reporting more or less rotation than actually happened. The guide calls
-     * calibrating this critical; a wrong scalar does not cause drift while still, it makes every
-     * turn come out the wrong size. Measure with DigitalChickenLabs' HeadingScalarCalibrator.
+     * Corrects the IMU reporting more or less rotation than actually happened. A wrong scalar does
+     * not cause drift; it makes every turn come out the wrong size, which shows up as heading
+     * skewing further and further out the more the robot spins.
+     *
+     * <p><b>Still a placeholder, not a measurement.</b> Run {@code blob: Heading Scalar Tuner},
+     * turn the robot by hand through ten full turns, and put the number it gives you here.
      */
     public static double octoQuadImuHeadingScalar = 1.0;
 
     /** Hardware velocity averaging window, ms. Longer is smoother with more lag. */
     public static int octoQuadVelocityIntervalMS = 25;
 
-    /** How long to wait for the MK2 IMU to finish calibrating at init, ms. */
-    public static long octoQuadInitTimeoutMs = 3000;
+    /**
+     * How long to wait for the MK2 IMU to finish calibrating at init, ms.
+     *
+     * <p>Matches the library default. Giving up early means using the IMU before its zero-rate bias
+     * is calibrated, and that bias is what stops heading drifting. Note this value is synced into
+     * the params every loop, so it wins over whatever the library ships.
+     */
+    public static long octoQuadInitTimeoutMs = 5000;
 
     public static boolean octoQuadInvertHeading = false;
 
