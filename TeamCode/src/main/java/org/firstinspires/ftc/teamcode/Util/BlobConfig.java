@@ -101,6 +101,20 @@ public class BlobConfig {
     public static double xDeceleration = 80, yDeceleration = 90;
 
     public static double lateralMultiplier = 1.4;
+
+    /**
+     * Cap on the rotational part of the drive command, 0 to 1. Translation is unaffected.
+     *
+     * <p>Leave at 1 unless heading goes wrong specifically during fast turns. Past the gyro's
+     * measurement range the reported rate stops rising with the real one, so rotation is
+     * under-counted for as long as the spin lasts and no heading scalar recovers it. Capping the
+     * turn keeps the robot inside what the sensor can actually measure.
+     *
+     * <p>Confirm it first: measure the scalar by hand and again holding X in
+     * {@code blob: Heading Scalar Tuner}. Two scalars that disagree mean the error is rate
+     * dependent, and the tuner reports the peak turn rate to aim below.
+     */
+    public static double maxTurnPower = 1.0;
     public static double voltageConstant = 12;
 
     // Localization
@@ -142,7 +156,7 @@ public class BlobConfig {
      * <p><b>Still a placeholder, not a measurement.</b> Run {@code blob: Heading Scalar Tuner},
      * turn the robot by hand through ten full turns, and put the number it reports here.
      */
-    public static double octoQuadImuHeadingScalar = 1.0;
+    public static double octoQuadImuHeadingScalar = 1.02;
 
     /** Hardware velocity averaging window, ms. Longer is smoother with more lag. */
     public static int octoQuadVelocityIntervalMS = 25;
@@ -229,6 +243,7 @@ public class BlobConfig {
         p.xDeceleration = xDeceleration;
         p.yDeceleration = yDeceleration;
         p.lateralMultiplier = lateralMultiplier;
+        p.maxTurnPower = maxTurnPower;
 
         p.xOffset = xOffset;
         p.yOffset = yOffset;
