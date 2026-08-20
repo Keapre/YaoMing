@@ -156,7 +156,7 @@ public class BlobConfig {
      * <p><b>Still a placeholder, not a measurement.</b> Run {@code blob: Heading Scalar Tuner},
      * turn the robot by hand through ten full turns, and put the number it reports here.
      */
-    public static double octoQuadImuHeadingScalar = 1.02;
+    public static double octoQuadImuHeadingScalar = 1.0221;
 
     /** Hardware velocity averaging window, ms. Longer is smoother with more lag. */
     public static int octoQuadVelocityIntervalMS = 25;
