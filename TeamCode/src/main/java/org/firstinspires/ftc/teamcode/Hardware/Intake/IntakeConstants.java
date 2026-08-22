@@ -45,8 +45,8 @@ public class IntakeConstants {
     public static double capacClosed = 0.8;
     public static double capacReleaseTransfer = 350;
 
-    public static double blockerOpen = 0.23;
-    public static double blockerClose = 0.03;
+    public static double blockerOpen = 0.305;
+    public static double blockerClose = 0.43;
 
     public static double powerArmLow = 0.48;
     public static double powerArmRecycle = 0.84;

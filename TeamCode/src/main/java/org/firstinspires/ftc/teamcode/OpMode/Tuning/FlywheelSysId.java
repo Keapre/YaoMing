@@ -60,8 +60,15 @@ public class FlywheelSysId extends LinearOpMode {
     /** Match Launcher's motor directions so logged power sign == what the real controller commands. */
     public static boolean SHOOTER1_REVERSED = true;   // Launcher: shooter1 = REVERSE
     public static boolean SHOOTER2_REVERSED = false;  // Launcher: shooter2 = FORWARD
-    /** fl-port encoder direction; REVERSE matches Blob so vel sign == controller's currentVel. */
-    public static boolean FL_ENCODER_REVERSED = true;
+    /**
+     * Software sign on the logged/used velocity (NOT a setDirection, since the encoder shares the
+     * shooter1 port). Set this so the signed velocity is POSITIVE while the wheel spins the shooting
+     * direction. Use the DIRECTION CHECK phase to dial it in.
+     */
+    public static boolean FL_ENCODER_REVERSED = false;
+
+    /** Open-loop power used during the interactive DIRECTION CHECK phase (before the logged sweep). */
+    public static double DIR_CHECK_POWER = 0.35;
 
     private static final String OUT_DIR = "/sdcard/FIRST/flywheel-sysid";
 
@@ -75,20 +82,21 @@ public class FlywheelSysId extends LinearOpMode {
 
         DcMotorEx shooter1 = hardwareMap.get(DcMotorEx.class, "shooter1");
         DcMotorEx shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        // Flywheel encoder lives on the front-left drivetrain port. We read it, we do not drive it.
-        DcMotorEx flEncoder = hardwareMap.get(DcMotorEx.class, BlobConfig.leftFrontName);
+        // Flywheel velocity encoder is on the shooter1 port (the same motor we drive). Its sign
+        // follows shooter1's direction; FL_ENCODER_REVERSED is applied in software on top of that.
+        DcMotorEx flEncoder = hardwareMap.get(DcMotorEx.class, "shooter1");
         VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
 
         shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        // FLOAT so the coast-down segment is a true passive spin-down. (BRAKE here would corrupt TAU.)
         shooter1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooter1.setDirection(SHOOTER1_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-        shooter2.setDirection(SHOOTER2_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-
-        flEncoder.setDirection(FL_ENCODER_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
-        flEncoder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        flEncoder.setPower(0.0); // keep the robot still; we only want the encoder reading
+        // NOTE: flEncoder shares the shooter1 port, so its sign is governed by shooter1's setDirection.
+        // We do NOT call setDirection on it (that would fight SHOOTER1_REVERSED on the same port).
+        // FL_ENCODER_REVERSED is applied as a software sign on the logged velocity instead, so the
+        // motor direction and the encoder sign can be chosen independently. Directions are (re)applied
+        // every loop from the live flags so dashboard edits take effect immediately.
 
         // Build the schedule: each power for DWELL_SECONDS, then 0 for COAST_SECONDS.
         int n = (POWER_SEQUENCE == null) ? 0 : POWER_SEQUENCE.length;
@@ -128,6 +136,50 @@ public class FlywheelSysId extends LinearOpMode {
 
         waitForStart();
 
+        // ---- DIRECTION CHECK (interactive, before the logged sweep) ----
+        // Jog the shooters and set the three flags LIVE in the dashboard until:
+        //   1) the wheel spins the SHOOTING direction (throws a ball out) under positive power, and
+        //   2) the signed velocity below reads POSITIVE while it does.
+        // Then press B to start the logged sweep.
+        boolean startSweep = false;
+        boolean prevB = false;
+        while (opModeIsActive() && !startSweep) {
+            for (LynxModule h : hubs) h.clearBulkCache();
+            applyMotorDirections(shooter1, shooter2);
+
+            double jogBoth = gamepad1.a ? DIR_CHECK_POWER : 0.0;
+            // Per-motor jog to check each one alone: X = shooter1 only, Y = shooter2 only.
+            double s1p = gamepad1.x ? DIR_CHECK_POWER : jogBoth;
+            double s2p = gamepad1.y ? DIR_CHECK_POWER : jogBoth;
+            shooter1.setPower(s1p);
+            shooter2.setPower(s2p);
+
+            double raw = flEncoder.getVelocity();
+            double signed = raw * (FL_ENCODER_REVERSED ? -1.0 : 1.0);
+            boolean spinning = Math.abs(signed) > 30;
+
+            telemetry.addLine("== DIRECTION CHECK ==");
+            telemetry.addLine("A = spin BOTH, X = shooter1 only, Y = shooter2 only.");
+            telemetry.addLine("GOAL: wheel shoots OUT and 'signed vel' is POSITIVE.");
+            telemetry.addLine("- wheel spins wrong way / a motor fights -> flip that SHOOTERx_REVERSED");
+            telemetry.addLine("- wheel shoots right but signed vel NEGATIVE -> flip FL_ENCODER_REVERSED");
+            telemetry.addData("raw vel", String.format(Locale.US, "%.1f", raw));
+            telemetry.addData("signed vel", String.format(Locale.US, "%.1f", signed));
+            telemetry.addData("sign OK?", !spinning ? "spin it up" : (signed > 0 ? "YES (positive)" : "NO -> flip FL_ENCODER_REVERSED"));
+            telemetry.addData("SHOOTER1_REVERSED", SHOOTER1_REVERSED);
+            telemetry.addData("SHOOTER2_REVERSED", SHOOTER2_REVERSED);
+            telemetry.addData("FL_ENCODER_REVERSED", FL_ENCODER_REVERSED);
+            telemetry.addLine("Press B to START the logged sweep.");
+            telemetry.update();
+
+            boolean bb = gamepad1.b;
+            if (bb && !prevB) startSweep = true;
+            prevB = bb;
+        }
+        shooter1.setPower(0);
+        shooter2.setPower(0);
+        double encSign = FL_ENCODER_REVERSED ? -1.0 : 1.0;
+
         ElapsedTime total = new ElapsedTime();
         ElapsedTime sinceSample = new ElapsedTime();
         int samples = 0;
@@ -140,12 +192,13 @@ public class FlywheelSysId extends LinearOpMode {
             while (seg < segEnd.length - 1 && t > segEnd[seg]) seg++;
             double power = segPower[seg];
 
+            applyMotorDirections(shooter1, shooter2);
             shooter1.setPower(power);
             shooter2.setPower(power);
 
             if (sinceSample.milliseconds() >= SAMPLE_MS) {
                 sinceSample.reset();
-                double vel = flEncoder.getVelocity();
+                double vel = flEncoder.getVelocity() * encSign;
                 double volts = battery.getVoltage();
                 if (writer != null) {
                     try {
@@ -179,5 +232,11 @@ public class FlywheelSysId extends LinearOpMode {
             telemetry.update();
             sleep(200);
         }
+    }
+
+    /** (Re)apply the motor directions from the live flags. The encoder sign is handled separately. */
+    private void applyMotorDirections(DcMotorEx shooter1, DcMotorEx shooter2) {
+        shooter1.setDirection(SHOOTER1_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        shooter2.setDirection(SHOOTER2_REVERSED ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
     }
 }
