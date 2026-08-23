@@ -136,7 +136,7 @@ public class Far extends OpMode {
                 setPathState(AutoStates.WAIT_PICKUP_HP);
                 break;
             case WAIT_PICKUP_HP:
-                if (robot.sensors.areAllBeamsLowForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
+                if (robot.sensors.areAllLasersBlockedForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
                     setPathState(AutoStates.GO_SCORE_HP);
                 }
                 break;
@@ -172,7 +172,7 @@ public class Far extends OpMode {
                 setPathState(AutoStates.WAIT_PICKUP3);
                 break;
             case WAIT_PICKUP3:
-                if (robot.sensors.areAllBeamsLowForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
+                if (robot.sensors.areAllLasersBlockedForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
                     setPathState(AutoStates.GO_SCORE_SPIKE3);
                 }
                 break;
@@ -207,7 +207,7 @@ public class Far extends OpMode {
                 setPathState(AutoStates.WAIT_ZONE_PICKUP);
                 break;
             case WAIT_ZONE_PICKUP:
-                if (robot.sensors.areAllBeamsLowForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
+                if (robot.sensors.areAllLasersBlockedForTime() || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
                     setPathState(AutoStates.GO_SCORE_CYCLE);
                 }
                 break;

@@ -64,30 +64,51 @@ public class Limelight implements Module {
 
     public Limelight(Robot robot) {
         this.robot = robot;
-        ll = robot.hw.get(Limelight3A.class, "limelight");
-        enabled = (Info.phase == Phase.AUTONOMOUS);
-        if (enabled) {
-            ll.start();
-        } else {
-            ll.stop();
+
+        Limelight3A tempLl = null;
+        try {
+            tempLl = robot.hw.get(Limelight3A.class, "limelight");
+        } catch (Exception e) {
+            Log.w("Limelight", "no 'limelight' in config; vision disabled: " + e.getMessage());
+        }
+        ll = tempLl;
+
+        enabled = (ll != null) && (Info.phase == Phase.AUTONOMOUS);
+        if (ll != null) {
+            if (enabled) ll.start();
+            else ll.stop();
         }
 
-        lamp = robot.hw.get(ServoImplEx.class, "lamp");
-        lamp.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        ServoImplEx tempLamp = null;
+        try {
+            tempLamp = robot.hw.get(ServoImplEx.class, "lamp");
+            tempLamp.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        } catch (Exception e) {
+            tempLamp = null;
+            Log.w("Limelight", "no 'lamp' in config: " + e.getMessage());
+        }
+        lamp = tempLamp;
         setLamp(false);
     }
 
     public void setLamp(boolean on) {
+        if (lamp == null) return;
         lamp.setPwmEnable();
         lamp.setPosition(on ? LAMP_ON_POS : LAMP_OFF_POS);
     }
 
     public void pipelineSwitch(int index) {
+        if (ll == null) return;
         ll.pipelineSwitch(index);
     }
 
     public LLResult getLatestResult() {
-        return ll.getLatestResult();
+        return (ll == null) ? null : ll.getLatestResult();
+    }
+
+    /** True when a Limelight was found in the config and vision is running. */
+    public boolean isAvailable() {
+        return ll != null;
     }
 
     @Override

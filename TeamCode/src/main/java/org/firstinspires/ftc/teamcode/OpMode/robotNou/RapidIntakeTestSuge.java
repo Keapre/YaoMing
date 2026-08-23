@@ -27,7 +27,7 @@ public class RapidIntakeTestSuge extends LinearOpMode {
     DcMotorEx trasnfer;
     GamePadController gg;
 
-    public static String nameBeamBrake = "beamBrakePos3";
+    public static String nameBeamBrake = "laserTransfer";
 
     Servo geckoCapac;
     Servo blockerMingi;

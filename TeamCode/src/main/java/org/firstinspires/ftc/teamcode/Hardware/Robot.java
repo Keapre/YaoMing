@@ -161,10 +161,10 @@ public class Robot {
         TelemetryUtil.packet.put("Current Y", sensors.getY());
         TelemetryUtil.packet.put("Current heading", sensors.getHeading());
         TelemetryUtil.packet.put("voltage",sensors.getVoltage());
-        TelemetryUtil.packet.put("beam 1 value",sensors.isBreakBeamPos1Low());
-        TelemetryUtil.packet.put("beam 2 value",sensors.isBreakBeamPos2Low());
-        TelemetryUtil.packet.put("beam 3 value",sensors.isBreakBeamPos3Low());
-        TelemetryUtil.packet.put("beam 3 first update",sensors.firstTrueBeam3);
+        TelemetryUtil.packet.put("laser left",sensors.isLaserLeftBlocked());
+        TelemetryUtil.packet.put("laser right",sensors.isLaserRightBlocked());
+        TelemetryUtil.packet.put("laser transfer",sensors.isLaserTransferBlocked());
+        TelemetryUtil.packet.put("laser transfer first update",sensors.firstTrueTransfer);
         TelemetryUtil.packet.put("Sensor light",sensors.lightColor.toString());
         TelemetryUtil.packet.put("Hood Target", outtake.launcher.getHoodPosition());
 

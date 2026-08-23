@@ -40,17 +40,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class RSTFlywheelController {
 
-    // ---- Identified plant (FlywheelSysId 2026-08-22 run 230520, correct direction, ~12.4 V) ----
-    /** Steady-state gain: ticks/sec per unit motor power. Fit: vel = 2428*power - 372. */
-    public static double K_DC = 2428.0;
-    /** Open-loop spin-up time constant, seconds (0.33-0.37 across the clean levels). */
-    public static double TAU = 0.35;
+    // ---- Identified plant (FlywheelSysId 2026-08-23 run 091516, correct direction, ~13.2 V) ----
+    /** Steady-state gain: ticks/sec per unit motor power. Fit: vel = 2560*power - 339. */
+    public static double K_DC = 2560.0;
+    /** Open-loop spin-up time constant, seconds (0.50-0.59 across the clean levels). */
+    public static double TAU = 0.54;
 
     // ---- Feedforward (from the same fit) used only to seed the integrator on reset ----
     /** Power per tps (~1/K_DC). */
-    public static double KV_FF = 0.000412;
-    /** Static/deadband power (offset 372 tps / gain 2428). */
-    public static double KS_FF = 0.153;
+    public static double KV_FF = 0.000391;
+    /** Static/deadband power (offset 339 tps / gain 2560). */
+    public static double KS_FF = 0.133;
 
     // ---- Closed-loop tuning knobs (the two things you actually tune) ----
     /** Tracking closed-loop time constant, seconds. Smaller = snappier spin-up. */
@@ -63,8 +63,8 @@ public class RSTFlywheelController {
     /** Lower bound. 0 = coast only (no active braking); negative allows the motors to brake. */
     public static double MIN_POWER = -0.25;
     public static boolean USE_VOLTAGE_COMP = true;
-    /** Battery voltage the plant gain K_DC was identified at (2026-08-22 run 230520 averaged ~12.4 V). */
-    public static double V_NOMINAL = 12.4;
+    /** Battery voltage the plant gain K_DC was identified at (2026-08-23 run 091516 averaged ~13.2 V). */
+    public static double V_NOMINAL = 13.2;
 
     // ---- dt guard ----
     public static double DT_MIN = 0.004;

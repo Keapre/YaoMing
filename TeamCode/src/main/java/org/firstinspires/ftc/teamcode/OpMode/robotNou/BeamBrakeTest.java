@@ -10,11 +10,11 @@ import org.firstinspires.ftc.teamcode.Util.Wrapper.DigitalWrapper;
 
 
 @Config
-@TeleOp(name = "Beam brake test", group = "Pedro Pathing")
+@TeleOp(name = "Distance Sensor test", group = "Pedro Pathing")
 public class BeamBrakeTest extends LinearOpMode {
-    public static String beamBrakeName = "beamBrakePos1";
-    public static String beamBrakeName2 = "beamBrakePos2";
-    public static String beamBrakeName3 = "beamBrakePos3";
+    public static String beamBrakeName = "laserLeft";
+    public static String beamBrakeName2 = "laserRight";
+    public static String beamBrakeName3 = "laserTransfer";
     DigitalChannel rawBeamBrake;
     DigitalChannel rawBeamBrake2;
     DigitalChannel rawBeamBrake3;
@@ -35,17 +35,17 @@ public class BeamBrakeTest extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()){
             currentValue = sensor.getValue();
-            telemetry.addData("Beam brake Wrapper state", currentValue);
-            telemetry.addData("Beam brake Wrapper state raw", sensor.getRaw());
+            telemetry.addData("Distance Sensor Wrapper state", currentValue);
+            telemetry.addData("Distance Sensor Wrapper state raw", sensor.getRaw());
 
-            telemetry.addData("Beam brake  raw state", rawBeamBrake.getState());
-            telemetry.addData("Beam brake raw state raw", rawBeamBrake.getState());
+            telemetry.addData("Distance Sensor  raw state", rawBeamBrake.getState());
+            telemetry.addData("Distance Sensor raw state raw", rawBeamBrake.getState());
 
-            telemetry.addData("Beam brake 2 raw state", rawBeamBrake2.getState());
-            telemetry.addData("Beam brake 2 raw state raw", rawBeamBrake2.getState());
+            telemetry.addData("Distance Sensor 2 raw state", rawBeamBrake2.getState());
+            telemetry.addData("Distance Sensor 2 raw state raw", rawBeamBrake2.getState());
 
-            telemetry.addData("Beam brake 3 raw state", rawBeamBrake3.getState());
-            telemetry.addData("Beam brake 3 raw state raw", rawBeamBrake3.getState());
+            telemetry.addData("Distance Sensor 3 raw state", rawBeamBrake3.getState());
+            telemetry.addData("Distance Sensor 3 raw state raw", rawBeamBrake3.getState());
 
             telemetry.update();
         }

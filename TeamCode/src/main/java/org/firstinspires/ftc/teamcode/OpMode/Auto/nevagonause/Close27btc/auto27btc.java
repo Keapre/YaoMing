@@ -250,7 +250,7 @@ public class auto27btc extends OpMode {
                 }
                 break;
             case WAIT_GATE_PICKUP:
-                if ((robot.sensors.areAllBeamsLowForTime()) || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
+                if ((robot.sensors.areAllLasersBlockedForTime()) || pathTimer.getElapsedTime() > constants.getFailSafePickupTime()) {
                     robot.blob.setTargetPosition(constants.scorePose, 30);
                     setPathState(AutoStates.GO_SCORE_GATE_PICKUP);
                 }

@@ -162,11 +162,14 @@ public class IntakeTransfer implements Module {
                 robot.sensors.setLedColor(Sensors.LightColor.RED);
                 blockerState = BlockerState.CLOSE;
                 intake.setPower(IntakeConstants.intakePowerIntake);
-                conveyorState = ConveyorState.OFF;
-                if (robot.sensors.isBreakBeamPos3Low() && robot.sensors.getHowLongBeam3() > IntakeConstants.beam3StopDelay) {
+                // Run the transfer until the transfer laser is high (ball staged at the top), then stop it.
+                if ((robot.sensors.isLaserTransferBlocked() && robot.sensors.getHowLongTransfer() > IntakeConstants.laserTransferStopDelay) || beamChecked) {
+                    conveyorState = ConveyorState.OFF;
                     beamChecked = true;
+                } else {
+                    conveyorState = ConveyorState.ON;
                 }
-                if (robot.sensors.areAllBeamsLowForTime() && beamChecked) {
+                if (robot.sensors.areAllLasersBlockedForTime() && beamChecked) {
                     robot.op.gamepad1.rumble(250);
                     robot.sensors.setLedColor(Sensors.LightColor.GREEN);
                     pre_off_open = null;
@@ -263,7 +266,7 @@ public class IntakeTransfer implements Module {
                 sleep(time_power, IntakeState.OFF_OPEN);
                 break;
             case TRANSFER:
-
+                // Shooting: run intake + transfer to funnel the staged balls into the flywheel.
                 if (robot.sensors.isFarZone()) {
                     intake.setPower(IntakeConstants.intakePowerIntakeFarZone);
                 } else {

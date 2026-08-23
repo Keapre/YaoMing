@@ -104,8 +104,8 @@ public class BlobConfig {
     public static double voltageConstant = 12;
 
     // Localization
-    public static double xOffset = -3.24803;
-    public static double yOffset = 4.30527;
+    public static double xOffset = 96.313 / 25.4;
+    public static double yOffset = -50.5 / 25.4;
     public static GoBildaPinpointDriver.EncoderDirection xPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.EncoderDirection yPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.GoBildaOdometryPods podType = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
@@ -118,8 +118,8 @@ public class BlobConfig {
 
     // OctoQuad geometry. Ignored unless localizerMode is one of the OCTOQUAD_ ones.
     public static String octoQuadName = "octoquad";
-    public static int octoQuadPortX = 7;   // forward-reading pod
-    public static int octoQuadPortY = 0;   // strafe-reading pod
+    public static int octoQuadPortX = 0;   // forward-reading pod
+    public static int octoQuadPortY = 1;   // strafe-reading pod
     /**
      * Counts per mm of pod travel. The Quickstart guide recommends MEASURING this by pushing the
      * robot a known distance rather than trusting the spec figure, because it depends on the wheel

@@ -29,6 +29,7 @@ public class Launcher implements Module {
     CachingDcMotorEx motor1, motor2;
 
     Servo tilt;
+    Servo tilt2;
 
     public static double offsetPower = 0;
     public static double[] Distances = {1, 50, 55.2, 58, 60, 63, 66, 69, 76.5, 85.5, 90.3, 95, 100, 110, 120, 130, 135, 140, 145, 150, 155, 160, 200};
@@ -73,6 +74,8 @@ public class Launcher implements Module {
     public static boolean use254 = false;
     /** Swaps the flywheel feedback from the PID (velController) to the RST controller. */
     public static boolean useRST = false;
+    public static boolean readVelFromShooter1 = true;
+    public static boolean shooterVelReversed = false;
     Team254FlywheelController velocityController254;
     RSTFlywheelController rstController;
     private double lastFlywheelTarget = 0;
@@ -87,7 +90,8 @@ public class Launcher implements Module {
         this.robot = robot;
         this.motor1 = new CachingDcMotorEx(robot.hw.get(DcMotorEx.class, "shooter1"), 0.002);
         this.motor2 = new CachingDcMotorEx(robot.hw.get(DcMotorEx.class, "shooter2"), 0.002);
-        tilt = robot.hw.get(Servo.class, "tilt");
+        tilt = robot.hw.get(Servo.class, "tiltR");
+        tilt2 = robot.hw.get(Servo.class, "tiltL");
         HardwareUtils.unlock(motor1);
         HardwareUtils.unlock(motor2);
         addData();
@@ -95,8 +99,8 @@ public class Launcher implements Module {
         motor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motor1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motor2.setDirection(DcMotorEx.Direction.FORWARD);
+        motor1.setDirection(DcMotorSimple.Direction.FORWARD);
+        motor2.setDirection(DcMotorEx.Direction.REVERSE);
         velController = new velocityController();
         velocityController254 = new Team254FlywheelController();
         rstController = new RSTFlywheelController();
@@ -225,7 +229,10 @@ public class Launcher implements Module {
             rebuildTables = false;
         }
 
-        currentVel = filter.estimate(-robot.blob.returnFrVelocity());
+        double rawVel = readVelFromShooter1
+                ? motor1.getVelocity() * (shooterVelReversed ? -1.0 : 1.0)
+                : -robot.blob.returnFrVelocity();
+        currentVel = filter.estimate(rawVel);
 
         double shooterX = robot.sensors.getShooterWorldX();
         double shooterY = robot.sensors.getShooterWorldY();
@@ -377,6 +384,7 @@ public class Launcher implements Module {
                 break;
         }
         tilt.setPosition(target_tilt + pickHoodOffset());
+        tilt2.setPosition(target_tilt + pickHoodOffset());
     }
 
     /**
@@ -431,6 +439,7 @@ public class Launcher implements Module {
             target_tilt = 0.3;
         }
         tilt.setPosition(target_tilt + pickHoodOffset());
+        tilt2.setPosition(target_tilt + pickHoodOffset());
     }
 
     public void snapshotVoltage() {

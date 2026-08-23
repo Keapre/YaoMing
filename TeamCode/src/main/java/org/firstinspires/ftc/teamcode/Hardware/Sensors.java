@@ -5,7 +5,7 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+import org.firstinspires.ftc.teamcode.Util.Wrapper.DigitalWrapper;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
@@ -23,7 +23,6 @@ import org.firstinspires.ftc.teamcode.Util.Globals.Alliance;
 import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
 import org.firstinspires.ftc.teamcode.Util.Info;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.OuttakePositions;
-import org.firstinspires.ftc.teamcode.Util.Math.Debouncer;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.CachingVoltageSensor;
 import org.firstinspires.ftc.teamcode.Util.Wrapper.InterpLUT;
 import com.blob.control.LowPassFilter;
@@ -62,9 +61,10 @@ public class Sensors {
     private LowPassFilter voltageFilter = new LowPassFilter(alphaVoltageFilter, 0);
 
     private boolean intakeMotor1OverCurrent = false;
-    private boolean breakBeamPos1High = false;
-    private boolean breakBeamPos2High = false;
-    private boolean breakBeamPos3High = false;
+    // goBILDA laser distance sensors, used as digital (high/low) present-detectors. "blocked" = ball present.
+    private boolean laserLeftBlocked = false;
+    private boolean laserRightBlocked = false;
+    private boolean laserTransferBlocked = false;
 
     public double targetX = -66.6;
     public double targetY = -65;
@@ -118,11 +118,10 @@ public class Sensors {
 
     public static double DEFAULT_PROJECTILE_SPEED = 300.0; // inches per second, rough guess
 
-    private DigitalChannel breakBeamPos1, breakBeamPos2, breakBeamPos3;
-    private Debouncer bb1, bb2, bb3;
-    public boolean lastValueBreakBreamPos1, lastValuebreamBeamPos2, lastValuebreamBeamPos3;
+    private DigitalWrapper laserLeft, laserRight, laserTransfer;
+    public boolean lastLaserLeft, lastLaserRight, lastLaserTransfer;
 
-    public long firstTrueBeam1, firstTrueBeam2, firstTrueBeam3;
+    public long firstTrueLeft, firstTrueRight, firstTrueTransfer;
 
     // --- SOTM / TURRET PREDICTION VARIABLES ---
     public static double ACCEL_COMP_FACTOR = 0;     // Multiplier for the 0.5*a*t^2 term
@@ -169,23 +168,18 @@ public class Sensors {
 
     private void initSensors() {
         turretAngleTimer.reset(); // Safely reset the timer initialized at the class level
-        bb1 = new Debouncer(debouncerTime, Debouncer.DebounceType.kBoth);
-        bb2 = new Debouncer(debouncerTime, Debouncer.DebounceType.kBoth);
-        bb3 = new Debouncer(debouncerTime, Debouncer.DebounceType.kBoth);
         light = new CachingServo(robot.hw.get(Servo.class, "led"));
         voltageSensor = new CachingVoltageSensor(robot.hw);
 
-        breakBeamPos1 = robot.hw.get(DigitalChannel.class, "beamBrakePos1");
-        breakBeamPos1.setMode(DigitalChannel.Mode.INPUT);
-        lastValueBreakBreamPos1 = breakBeamPos1.getState();
+        // Lasers go through DigitalWrapper (debounce + 5-deep glitch filter, ball present == HIGH).
+        laserLeft = new DigitalWrapper(robot.hw, "laserLeft");
+        lastLaserLeft = laserLeft.getValue();
 
-        breakBeamPos2 = robot.hw.get(DigitalChannel.class, "beamBrakePos2");
-        breakBeamPos2.setMode(DigitalChannel.Mode.INPUT);
-        lastValuebreamBeamPos2 = breakBeamPos2.getState();
+        laserRight = new DigitalWrapper(robot.hw, "laserRight");
+        lastLaserRight = laserRight.getValue();
 
-        breakBeamPos3 = robot.hw.get(DigitalChannel.class, "beamBrakePos3");
-        breakBeamPos3.setMode(DigitalChannel.Mode.INPUT);
-        lastValuebreamBeamPos3 = breakBeamPos3.getState();
+        laserTransfer = new DigitalWrapper(robot.hw, "laserTransfer");
+        lastLaserTransfer = laserTransfer.getValue();
 
         voltage = robot.hw.voltageSensor.iterator().next().getVoltage();
         readVoltageTime = System.currentTimeMillis();
@@ -356,46 +350,47 @@ public class Sensors {
 
         calculateDistance();
 
-        // Breakbeam updates
-        if (breakBeamPos1 != null) {
-            lastValueBreakBreamPos1 = breakBeamPos1High;
-            breakBeamPos1High = bb1.calculate(!(breakBeamPos1.getState()));
-            if (breakBeamPos1High && !lastValueBreakBreamPos1) {
-                firstTrueBeam1 = System.currentTimeMillis();
-            } else if (!breakBeamPos1High && !lastValueBreakBreamPos1) {
-                firstTrueBeam1 = System.currentTimeMillis();
+        // Laser present-detector updates (digital high/low). These lasers read HIGH when a ball is
+        // present, so blocked = getState() (no inversion, unlike the old break-beams).
+        if (laserLeft != null) {
+            lastLaserLeft = laserLeftBlocked;
+            laserLeftBlocked = laserLeft.getValue();
+            if (laserLeftBlocked && !lastLaserLeft) {
+                firstTrueLeft = System.currentTimeMillis();
+            } else if (!laserLeftBlocked && !lastLaserLeft) {
+                firstTrueLeft = System.currentTimeMillis();
             }
         } else {
-            breakBeamPos1High = false;
+            laserLeftBlocked = false;
         }
 
         if (isInTargetZone(shooterWorldX, shooterWorldY)) {
             robot.outtake.turret.forceUpdate = true;
         }
 
-        if (breakBeamPos2 != null) {
-            lastValuebreamBeamPos2 = breakBeamPos2High;
-            breakBeamPos2High = bb2.calculate(!(breakBeamPos2.getState()));
-            if (breakBeamPos2High && !lastValuebreamBeamPos2) {
-                firstTrueBeam2 = System.currentTimeMillis();
-            } else if (!breakBeamPos2High && !lastValuebreamBeamPos2) {
-                firstTrueBeam2 = System.currentTimeMillis();
+        if (laserRight != null) {
+            lastLaserRight = laserRightBlocked;
+            laserRightBlocked = laserRight.getValue();
+            if (laserRightBlocked && !lastLaserRight) {
+                firstTrueRight = System.currentTimeMillis();
+            } else if (!laserRightBlocked && !lastLaserRight) {
+                firstTrueRight = System.currentTimeMillis();
             }
         } else {
-            breakBeamPos2High = false;
+            laserRightBlocked = false;
         }
 
-        if (breakBeamPos3 != null) {
-            lastValuebreamBeamPos3 = breakBeamPos3High;
-            breakBeamPos3High = bb3.calculate(!(breakBeamPos3.getState()));
+        if (laserTransfer != null) {
+            lastLaserTransfer = laserTransferBlocked;
+            laserTransferBlocked = laserTransfer.getValue();
 
-            if (breakBeamPos3High && !lastValuebreamBeamPos3) {
-                firstTrueBeam3 = System.currentTimeMillis();
-            } else if (!breakBeamPos3High && !lastValuebreamBeamPos3) {
-                firstTrueBeam3 = System.currentTimeMillis();
+            if (laserTransferBlocked && !lastLaserTransfer) {
+                firstTrueTransfer = System.currentTimeMillis();
+            } else if (!laserTransferBlocked && !lastLaserTransfer) {
+                firstTrueTransfer = System.currentTimeMillis();
             }
         } else {
-            breakBeamPos3High = false;
+            laserTransferBlocked = false;
         }
 
 
@@ -706,30 +701,30 @@ public class Sensors {
         return inside;
     }
 
-    public boolean isBreakBeamPos1Low() {
-        return breakBeamPos1High;
+    public boolean isLaserLeftBlocked() {
+        return laserLeftBlocked;
     }
 
-    public boolean isBreakBeamPos2Low() {
-        return breakBeamPos2High;
+    public boolean isLaserRightBlocked() {
+        return laserRightBlocked;
     }
 
-    public boolean isBreakBeamPos3Low() {
-        return breakBeamPos3High;
+    public boolean isLaserTransferBlocked() {
+        return laserTransferBlocked;
     }
 
     public void setPoseAlign(boolean type){poseAlign=type;}
 
-    public double getHowLongBeam3() {
-        return System.currentTimeMillis() - firstTrueBeam3;
+    public double getHowLongTransfer() {
+        return System.currentTimeMillis() - firstTrueTransfer;
     }
 
-    public double getHowLongBeam2() {
-        return System.currentTimeMillis() - firstTrueBeam2;
+    public double getHowLongRight() {
+        return System.currentTimeMillis() - firstTrueRight;
     }
 
-    public double getHowLongBeam1() {
-        return System.currentTimeMillis() - firstTrueBeam1;
+    public double getHowLongLeft() {
+        return System.currentTimeMillis() - firstTrueLeft;
     }
 
     public double getDistanceFromPose(Pose pose) {
@@ -747,7 +742,7 @@ public class Sensors {
         return Math.hypot(dx, dy);
     }
 
-    public static double autoSensorBeam = 0.6;
+    public static double autoSensorLaser = 0.6;
 
     public double getShooterX() {
         return shooterWorldX;
@@ -761,24 +756,24 @@ public class Sensors {
         usePredictivePose = use;
     }
 
-    public boolean areAllBeamsLowForTime() {
+    public boolean areAllLasersBlockedForTime() {
         if (Info.phase == Phase.AUTONOMOUS) { ///TEST
-            return getHowLongBeam1() > IntakeConstants.beam1stopDelay * autoSensorBeam &&
-                    getHowLongBeam2() > IntakeConstants.beam2stopDelay * autoSensorBeam &&
-                    getHowLongBeam3() > IntakeConstants.beam3StopDelay * autoSensorBeam;
+            return getHowLongLeft() > IntakeConstants.laserLeftStopDelay * autoSensorLaser &&
+                    getHowLongRight() > IntakeConstants.laserRightStopDelay * autoSensorLaser &&
+                    getHowLongTransfer() > IntakeConstants.laserTransferStopDelay * autoSensorLaser;
         }
-        return getHowLongBeam1() > IntakeConstants.beam1stopDelay &&
-                getHowLongBeam2() > IntakeConstants.beam2stopDelay &&
-                getHowLongBeam3() > IntakeConstants.beam3StopDelay;
-    } public boolean areAllBeamsHighForTime() {
+        return getHowLongLeft() > IntakeConstants.laserLeftStopDelay &&
+                getHowLongRight() > IntakeConstants.laserRightStopDelay &&
+                getHowLongTransfer() > IntakeConstants.laserTransferStopDelay;
+    } public boolean areAllLasersClearForTime() {
         if (Info.phase == Phase.AUTONOMOUS) { ///TEST
-            return getHowLongBeam1() < IntakeConstants.beam1stopDelay * autoSensorBeam &&
-                    getHowLongBeam2() < IntakeConstants.beam2stopDelay * autoSensorBeam &&
-                    getHowLongBeam3() < IntakeConstants.beam3StopDelay * autoSensorBeam;
+            return getHowLongLeft() < IntakeConstants.laserLeftStopDelay * autoSensorLaser &&
+                    getHowLongRight() < IntakeConstants.laserRightStopDelay * autoSensorLaser &&
+                    getHowLongTransfer() < IntakeConstants.laserTransferStopDelay * autoSensorLaser;
         }
-        return getHowLongBeam1() < IntakeConstants.beam1stopDelay &&
-                getHowLongBeam2() < IntakeConstants.beam2stopDelay &&
-                getHowLongBeam3() < IntakeConstants.beam3StopDelay;
+        return getHowLongLeft() < IntakeConstants.laserLeftStopDelay &&
+                getHowLongRight() < IntakeConstants.laserRightStopDelay &&
+                getHowLongTransfer() < IntakeConstants.laserTransferStopDelay;
     }
     public void setTimeLatencyTurret(double timeLatency) {
         timeLatencyTurret = timeLatency;

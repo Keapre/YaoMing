@@ -35,7 +35,7 @@ public class Turret implements Module {
     }
 
     public double fixed_pos = 0.5;
-    public static double centerPose = 0.5;
+    public static double centerPose = 0.49;
     public TurretState turretState = TurretState.TRACKING;
     Robot robot;
 
