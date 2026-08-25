@@ -122,6 +122,7 @@ public class IntakeTransfer implements Module {
     ElapsedTime recycleMidTimer = new ElapsedTime();
     ElapsedTime recycleEndTimer = new ElapsedTime();
     ElapsedTime intakeSeq = new ElapsedTime();
+    ElapsedTime transferReverseTimer = new ElapsedTime();
     public double power_time = 0.5;
     public double time_power = 500;
     public double startStallCheckTime = 0;
@@ -266,9 +267,14 @@ public class IntakeTransfer implements Module {
                 sleep(time_power, IntakeState.OFF_OPEN);
                 break;
             case TRANSFER:
-                // Shooting: run intake + transfer to funnel the staged balls into the flywheel.
-                if (robot.sensors.isFarZone()) {
-                    intake.setPower(IntakeConstants.intakePowerIntakeFarZone);
+                // Shooting: funnel staged balls into the flywheel. On entry, reverse the intake at
+                // transferReversePower for transferReverseTime ms (settle/unjam), then drive it at
+                // transferPowerIntake.
+                if (previousState != IntakeState.TRANSFER) {
+                    transferReverseTimer.reset();
+                }
+                if (transferReverseTimer.milliseconds() < IntakeConstants.transferReverseTime) {
+                    intake.setPower(IntakeConstants.transferReversePower);
                 } else {
                     intake.setPower(IntakeConstants.transferPowerIntake);
                 }
