@@ -35,6 +35,9 @@ public class TuneShooterPid extends LinearOpMode {
         robot.blob.setMode(Blob.State.DRIVE);
         while (opModeIsActive()) {
             gg.update();
+            // Keep the LUT from overwriting the manually-set velocity/hood when firing (LAUNCHING
+            // pulls target/target_tilt from the LUT while auto_aim is on).
+            robot.outtake.launcher.autoAimOn(false);
             robot.update();
             if(gg.rightBumper()) {
                 if(gg.rightBumperOnce()){

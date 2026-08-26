@@ -296,12 +296,6 @@ public class TeleOP extends LinearOpMode
         if(gg.leftStickButtonOnce() || gg2.startOnce()) {
             robot.outtake.launcher.toggleZone();
         }
-        if(gg.yOnce()) {
-            robot.intakeTransfer.startRecycle(false);
-        }
-        if(gg.xOnce()){
-            robot.intakeTransfer.startRecycle(true);
-        }
 
 
         if(gg.bOnce()) {

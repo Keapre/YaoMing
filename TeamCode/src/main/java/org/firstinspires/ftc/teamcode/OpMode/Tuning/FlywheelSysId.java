@@ -48,8 +48,14 @@ import java.util.Locale;
 @TeleOp(name = "Flywheel SysID Logger", group = "tuning")
 public class FlywheelSysId extends LinearOpMode {
 
-    /** Raw open-loop power levels, each held for {@link #DWELL_SECONDS}. Up then down excites the plant both ways. */
-    public static double[] POWER_SEQUENCE = {0.20, 0.35, 0.50, 0.65, 0.80, 0.50, 0.20};
+    /**
+     * Raw open-loop power levels, each held for {@link #DWELL_SECONDS}. Up then down excites the
+     * plant both ways. Weighted toward where we actually shoot so the fit isn't extrapolated there:
+     * ~0.70-0.77 = upper close zone (1500-1640 tps), ~0.85-0.95 = far zone (1950-2100 tps), plus a
+     * low point (0.15) to pin the deadband/kS and 1.00 for the top end.
+     */
+    public static double[] POWER_SEQUENCE =
+            {0.15, 0.30, 0.45, 0.60, 0.70, 0.77, 0.85, 0.90, 0.95, 1.00, 0.60};
     /** Seconds to hold each power level. Must exceed the spin-up settling time (flywheel tau is well under a second). */
     public static double DWELL_SECONDS = 2.5;
     /** Seconds of final coast-down (power forced to 0) to capture the passive spin-down. */

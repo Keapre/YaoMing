@@ -49,7 +49,7 @@ public class Sensors {
     public LightColor lightColor = LightColor.OFF;
     Pose pose;
     double currentX, currentY, currentHeading;
-    public static double FORWARD_TURRET_OFFSET = -1.66;
+    public static double FORWARD_TURRET_OFFSET = 0.8203; // shooter +20.836 mm on +X from DT center
 
     private double currentVelocityShooter = 0;
     private double voltage;

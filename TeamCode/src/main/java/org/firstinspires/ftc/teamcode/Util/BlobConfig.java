@@ -105,7 +105,7 @@ public class BlobConfig {
 
     // Localization
     public static double xOffset = 96.313 / 25.4;
-    public static double yOffset = -50.5 / 25.4;
+    public static double yOffset = 50.5 / 25.4;
     public static GoBildaPinpointDriver.EncoderDirection xPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.EncoderDirection yPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.GoBildaOdometryPods podType = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
@@ -132,7 +132,7 @@ public class BlobConfig {
      * count up, and pushing it LEFT must make the Y pod count up. Expect to flip at least one.
      */
     public static GoBildaPinpointDriver.EncoderDirection octoQuadXDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
-    public static GoBildaPinpointDriver.EncoderDirection octoQuadYDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    public static GoBildaPinpointDriver.EncoderDirection octoQuadYDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
 
     /**
      * Corrects the IMU reporting more or less rotation than actually happened. A wrong scalar does
@@ -142,7 +142,7 @@ public class BlobConfig {
      * <p><b>Still a placeholder, not a measurement.</b> Run {@code blob: Heading Scalar Tuner},
      * turn the robot by hand through ten full turns, and put the number it gives you here.
      */
-    public static double octoQuadImuHeadingScalar = 1.0;
+    public static double octoQuadImuHeadingScalar = 1.02;
 
     /** Hardware velocity averaging window, ms. Longer is smoother with more lag. */
     public static int octoQuadVelocityIntervalMS = 25;

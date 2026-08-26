@@ -44,7 +44,7 @@ dependencies {
 // Remove this block, or run the menu entry that added it, to go back to
 // packaging team code in the APK.
 //
-// Kept in the APK anyway: nothing
+// Kept in the APK anyway: org/firstinspires/ftc/teamcode/pusherpower/PusherPowerMonitor
 android {
     sourceSets {
         main {
@@ -52,7 +52,8 @@ android {
                 exclude { details ->
                     def path = details.path
                     !details.directory &&
-                        path.startsWith('org/firstinspires/ftc/teamcode/')
+                        path.startsWith('org/firstinspires/ftc/teamcode/') &&
+                        !path.startsWith('org/firstinspires/ftc/teamcode/pusherpower/PusherPowerMonitor.')
                 }
             }
         }
@@ -66,7 +67,8 @@ tasks.matching { it.name.startsWith('compile') && it.name.endsWith('Kotlin') }.c
     exclude { details ->
         def path = details.path
         !details.directory &&
-            path.startsWith('org/firstinspires/ftc/teamcode/')
+            path.startsWith('org/firstinspires/ftc/teamcode/') &&
+            !path.startsWith('org/firstinspires/ftc/teamcode/pusherpower/PusherPowerMonitor.')
     }
 }
 // pusher extreme: end
