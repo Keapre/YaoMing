@@ -104,8 +104,23 @@ public class BlobConfig {
     public static double voltageConstant = 12;
 
     // Localization
-    public static double xOffset = 96.313 / 25.4;
-    public static double yOffset = 50.5 / 25.4;
+    //
+    // We run an OctoQuad MK2, whose geometry is the TCP offset in millimetres, so that is what is
+    // set here and it goes to the board unchanged. It used to be derived from Pinpoint-style pod
+    // offsets in inches, which meant every value made a round trip of mm -> inches -> per-pod
+    // convention -> mm with an axis swap and a sign flip. Three chances to be wrong for no benefit,
+    // since nothing here runs a Pinpoint.
+    //
+    // These two numbers reproduce exactly what the derivation was producing, so behaviour is
+    // unchanged. Whether they are RIGHT is a separate question: run blob: Rotation Offset Tuner,
+    // which measures the offset from the circle the pose traces while the robot spins, and does not
+    // care which convention anything was originally written in.
+    public static double octoQuadTcpOffsetMM_X = -96.313;
+    public static double octoQuadTcpOffsetMM_Y = -50.500;
+
+    // Kept for the Pinpoint localizers, which we do not use. Not the source of the TCP offsets.
+    public static double yOffset = 96.313 / 25.4;
+    public static double xOffset = 50.5 / 25.4;
     public static GoBildaPinpointDriver.EncoderDirection xPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.EncoderDirection yPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.GoBildaOdometryPods podType = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
@@ -159,18 +174,9 @@ public class BlobConfig {
     public static boolean octoQuadInvertHeading = false;
 
     /**
-     * TCP offsets are derived from xOffset/yOffset rather than typed in, because the conversion is
-     * not just inches to millimetres. The OctoQuad wants the vector from the mathematical TCP, where
-     * the two pods' lines of travel cross, to the point we actually want to track. Relative to the
-     * Pinpoint's per-pod offsets that swaps the axes and flips both signs:
-     *
-     *   octoQuadTcpOffsetMM_X = -yOffset * 25.4 = -109.354
-     *   octoQuadTcpOffsetMM_Y = -xOffset * 25.4 =  +82.500
-     *
-     * Doing it by hand and getting it wrong does not break straight lines. It makes the reported
-     * position wobble every time the robot turns, which reads like a PID problem.
-     *
-     * See the OctoQuad Localizer Quickstart, "Localizer TCP Offset".
+     * Pinpoint-style pod offsets, in inches. Only read by the Pinpoint localizers, which we do not
+     * use, so changing them does nothing on this robot. The OctoQuad's geometry is
+     * {@link #octoQuadTcpOffsetMM_X} and {@link #octoQuadTcpOffsetMM_Y} above.
      */
     /** Two-wheel mode only. Pod offsets in INCHES, same measurements the Pinpoint uses. */
     public static double octoQuadTicksPerInch = 19.89436789 * 25.4;
@@ -247,8 +253,10 @@ public class BlobConfig {
         p.octoQuadVelocityIntervalMS = octoQuadVelocityIntervalMS;
         p.octoQuadInitTimeoutMs = octoQuadInitTimeoutMs;
         p.octoQuadInvertHeading = octoQuadInvertHeading;
-        // Must come after xOffset/yOffset are set above; it reads them.
-        p.octoQuadOffsetsFromPinpoint();
+        // Set directly rather than derived from xOffset/yOffset. One source of truth, in the units
+        // the board actually takes.
+        p.octoQuadTcpOffsetMM_X = octoQuadTcpOffsetMM_X;
+        p.octoQuadTcpOffsetMM_Y = octoQuadTcpOffsetMM_Y;
         p.octoQuadTicksPerInch = octoQuadTicksPerInch;
         // The two-wheel localizer reuses the Pinpoint's pod geometry, so there is one set to tune.
         p.parallelPodYOffset = xOffset;
