@@ -40,17 +40,25 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class RSTFlywheelController {
 
-    // ---- Identified plant (FlywheelSysId 2026-08-23 run 091516, correct direction, ~13.2 V) ----
-    /** Steady-state gain: ticks/sec per unit motor power. Fit: vel = 2560*power - 339. */
-    public static double K_DC = 2560.0;
-    /** Open-loop spin-up time constant, seconds (0.50-0.59 across the clean levels). */
-    public static double TAU = 0.54;
+    // ---- Identified plant (FlywheelSysId 2026-08-26 run 230459, 11-step sweep, ~12.7 V) ----
+    /**
+     * Steady-state gain: ticks/sec per unit motor power. Voltage-normalized fit over the high-power
+     * region (power >= 0.60, where we actually shoot): vel = 2599*power - 262. The full-range fit is
+     * ~2534; the plant is a touch steeper near the operating point, so we use the high-power fit.
+     */
+    public static double K_DC = 2599.0;
+    /**
+     * Open-loop spin-up time constant, seconds. IMPORTANT: this run showed TAU is power-dependent -
+     * ~0.40 at mid power but ~0.65-0.85 near the far-zone operating point (0.85-0.95 power). Since
+     * far is the default shooting mode, TAU is set to the operating-point value, not the mid-range one.
+     */
+    public static double TAU = 0.65;
 
     // ---- Feedforward (from the same fit) used only to seed the integrator on reset ----
     /** Power per tps (~1/K_DC). */
-    public static double KV_FF = 0.000391;
-    /** Static/deadband power (offset 339 tps / gain 2560). */
-    public static double KS_FF = 0.133;
+    public static double KV_FF = 0.000385;
+    /** Static/deadband power (high-power fit offset 262 tps / gain 2599). */
+    public static double KS_FF = 0.10;
 
     // ---- Closed-loop tuning knobs (the two things you actually tune) ----
     /** Tracking closed-loop time constant, seconds. Smaller = snappier spin-up. */
@@ -63,8 +71,8 @@ public class RSTFlywheelController {
     /** Lower bound. 0 = coast only (no active braking); negative allows the motors to brake. */
     public static double MIN_POWER = -0.25;
     public static boolean USE_VOLTAGE_COMP = true;
-    /** Battery voltage the plant gain K_DC was identified at (2026-08-23 run 091516 averaged ~13.2 V). */
-    public static double V_NOMINAL = 13.2;
+    /** Battery voltage the plant gain K_DC was identified at (2026-08-26 run 230459 averaged ~12.7 V). */
+    public static double V_NOMINAL = 12.7;
 
     // ---- dt guard ----
     public static double DT_MIN = 0.004;
