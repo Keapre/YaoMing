@@ -181,6 +181,29 @@ public class BlobConfig {
     /** Two-wheel mode only. Pod offsets in INCHES, same measurements the Pinpoint uses. */
     public static double octoQuadTicksPerInch = 19.89436789 * 25.4;
 
+    // -----------------------------------------------------------------------------------
+    // Measured drivetrain constants, from blob: Autotune. Paste its output here.
+    //
+    // All zero means not measured, and Blob.State.RST refuses to drive rather than following
+    // a model of nothing. State.PID ignores them entirely, so leaving them empty costs nothing.
+    // -----------------------------------------------------------------------------------
+    public static double forwardKS = 0, forwardKV = 0, forwardKA = 0;
+    public static double lateralKS = 0, lateralKV = 0, lateralKA = 0;
+    public static double angularKS = 0, angularKV = 0, angularKA = 0;
+
+    /** How fast an RST velocity loop should converge, seconds. Autotune suggests a value. */
+    public static double rstTauClosedLoop = 0.08;
+    /** Its integral pole. Disturbances only: it does not slow tracking down. */
+    public static double rstTauIntegral = 0.4;
+    /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
+    public static double rstApproachTau = 0.25;
+    /** How fast a turn to ask for, as opposed to how fast to meet it. */
+    public static double rstHeadingTau = 0.3;
+    /** Speed caps, 0 to derive them from the constants and the battery. */
+    public static double rstMaxVelocity = 0, rstMaxAngularVelocity = 0;
+    /** How much of the achievable speed to use. The rest is headroom for the loop. */
+    public static double rstSpeedFraction = 0.85;
+
     // Curves
     public static double splineLookahead = 6.0;
     public static int splineSamples = 64;
@@ -231,6 +254,17 @@ public class BlobConfig {
 
         p.kP = kP; p.kI = kI; p.kD = kD;
         p.hP = hP; p.hI = hI; p.hD = hD;
+
+        p.forwardKS = forwardKS; p.forwardKV = forwardKV; p.forwardKA = forwardKA;
+        p.lateralKS = lateralKS; p.lateralKV = lateralKV; p.lateralKA = lateralKA;
+        p.angularKS = angularKS; p.angularKV = angularKV; p.angularKA = angularKA;
+        p.rstTauClosedLoop = rstTauClosedLoop;
+        p.rstTauIntegral = rstTauIntegral;
+        p.rstApproachTau = rstApproachTau;
+        p.rstHeadingTau = rstHeadingTau;
+        p.rstMaxVelocity = rstMaxVelocity;
+        p.rstMaxAngularVelocity = rstMaxAngularVelocity;
+        p.rstSpeedFraction = rstSpeedFraction;
 
         p.xDeceleration = xDeceleration;
         p.yDeceleration = yDeceleration;
