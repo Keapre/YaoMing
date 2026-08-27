@@ -115,12 +115,12 @@ public class BlobConfig {
     // unchanged. Whether they are RIGHT is a separate question: run blob: Rotation Offset Tuner,
     // which measures the offset from the circle the pose traces while the robot spins, and does not
     // care which convention anything was originally written in.
-    public static double octoQuadTcpOffsetMM_X = -96.313;
-    public static double octoQuadTcpOffsetMM_Y = -50.500;
+    public static double octoQuadTcpOffsetMM_X = -104.60146411045879;
+    public static double octoQuadTcpOffsetMM_Y = -50.98700462712526;
 
     // Kept for the Pinpoint localizers, which we do not use. Not the source of the TCP offsets.
-    public static double yOffset = 96.313 / 25.4;
-    public static double xOffset = 50.5 / 25.4;
+    public static double yOffset = 104.60146411045879 / 25.4;
+    public static double xOffset = 50.98700462712526 / 25.4;
     public static GoBildaPinpointDriver.EncoderDirection xPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.EncoderDirection yPodDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public static GoBildaPinpointDriver.GoBildaOdometryPods podType = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
@@ -187,14 +187,28 @@ public class BlobConfig {
     // All zero means not measured, and Blob.State.RST refuses to drive rather than following
     // a model of nothing. State.PID ignores them entirely, so leaving them empty costs nothing.
     // -----------------------------------------------------------------------------------
-    public static double forwardKS = 0, forwardKV = 0, forwardKA = 0;
-    public static double lateralKS = 0, lateralKV = 0, lateralKA = 0;
-    public static double angularKS = 0, angularKV = 0, angularKA = 0;
+    public static double forwardKS = 1.005556977145929;
+    public static double forwardKV = 0.1531052616714671;
+    public static double forwardKA = 0.020939451511571863;
 
-    /** How fast an RST velocity loop should converge, seconds. Autotune suggests a value. */
+    public static double lateralKS = 1.8496674201113557;
+    public static double lateralKV = 0.16649036357220193;
+    public static double lateralKA = 0.018977932127223332;
+
+    public static double angularKS = 1.2282686278472141;
+    public static double angularKV = 1.984012525580037;
+    public static double angularKA = 0.1354479467776826;
+
+    /**
+     * How fast an RST velocity loop should converge, seconds.
+     *
+     * <p>0.08 is the four-loop floor rather than anything about this drivetrain: half the slowest
+     * axis tau would be 0.068, and no pole placement beats the rate the loop runs at. So the loop
+     * time is the limit here, not the robot.
+     */
     public static double rstTauClosedLoop = 0.08;
     /** Its integral pole. Disturbances only: it does not slow tracking down. */
-    public static double rstTauIntegral = 0.4;
+    public static double rstTauIntegral = 0.32;
     /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
     public static double rstApproachTau = 0.25;
     /** How fast a turn to ask for, as opposed to how fast to meet it. */
