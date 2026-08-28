@@ -26,7 +26,7 @@ public class Limelight implements Module {
     public static double STALE_TIMEOUT_MS = 250;
     public static double DETECT_CONF = 0.4;
     public static double HFOV_DEG = 54.5;
-    public static int NUM_ZONES = 8;
+    public static int NUM_ZONES = 3;
     public static double ZONE_SWITCH_MIN_MARGIN = 1;
     public static double SMOOTHING_ALPHA = 0.15;
     public static int LOST_TARGET_FRAMES = 5;

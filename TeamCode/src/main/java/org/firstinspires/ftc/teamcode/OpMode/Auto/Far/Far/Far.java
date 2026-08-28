@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpMode.Auto.Far.Far;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -60,6 +62,7 @@ public class Far extends OpMode {
 
     @Override
     public void init() {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         Info.phase = Phase.AUTONOMOUS;
         Info.useBlob = true;
         robot = new Robot(this);
@@ -82,7 +85,7 @@ public class Far extends OpMode {
         robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         robot.sensors.update();
-        robot.outtake.primeAimForAuto();
+        robot.outtake.primeAimForAuto(constants.scorePose);
 
         telemetry.addData("Limelight pipeline", selectedPipeline);
         telemetry.update();
@@ -111,7 +114,12 @@ public class Far extends OpMode {
         telemetry.addData("Drive inPos", robot.blob.inPosition());
         telemetry.addData("outtake state", robot.outtake.outtakeState);
         telemetry.addData("veerDecided", veerDecided);
+        telemetry.addData("dist to target", robot.sensors.getDistanceToBackboard());
+        telemetry.addData("shooter vel", robot.outtake.launcher.currentVel);
+        telemetry.addData("shooter target vel", robot.outtake.launcher.target);
         telemetry.update();
+
+        holdFixedPoseShot();
 
         switch (autoStates) {
             case IDLE:
@@ -121,7 +129,6 @@ public class Far extends OpMode {
                 robot.blob.setTargetPosition(constants.startPose.getX(), constants.startPose.getY());
                 robot.outtake.turret.turretState = Turret.TurretState.TRACKING;
 
-                robot.outtake.specificValues(constants.startPose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF);
                 if (!robot.outtake.launcher.isReady() && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
@@ -129,7 +136,6 @@ public class Far extends OpMode {
                 break;
 
             case GO_PICKUP_HP:
-                robot.outtake.specificValues(constants.scorePose);
                 robot.blob.setTargetPosition(constants.humanPlayerPose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
                 if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
@@ -143,11 +149,9 @@ public class Far extends OpMode {
 
             case GO_SCORE_HP:
                 robot.blob.setTargetPosition(constants.scorePose);
-                robot.outtake.specificValues(constants.scorePose);
                 setPathState(AutoStates.WAIT_SCORE_HP);
                 break;
             case WAIT_SCORE_HP:
-                robot.outtake.specificValues(constants.scorePose);
                 if (pathFraction(constants.humanPlayerPose, constants.scorePose) < constants.getHpIntakeUntilPercentage()) {
                     robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
                 } else {
@@ -159,7 +163,6 @@ public class Far extends OpMode {
                 break;
 
             case GO_PICKUP3_INTER:
-                robot.outtake.specificValues(constants.scorePose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF);
                 robot.blob.setTargetPosition(constants.pickUpPose3Intermediary);
                 if (!robot.blob.inPosition(1.6,1.6,0.12) && pathTimer.getElapsedTime() < constants.getFailSafeDtTime()) break;
@@ -178,11 +181,9 @@ public class Far extends OpMode {
                 break;
             case GO_SCORE_SPIKE3:
                 robot.blob.setTargetPosition(constants.scorePose);
-                robot.outtake.specificValues(constants.scorePose);
                 setPathState(AutoStates.WAIT_SCORE_SPIKE3);
                 break;
             case WAIT_SCORE_SPIKE3:
-                robot.outtake.specificValues(constants.scorePose);
                 robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
@@ -218,7 +219,6 @@ public class Far extends OpMode {
                 setPathState(AutoStates.WAIT_SCORE_CYCLE);
                 break;
             case WAIT_SCORE_CYCLE:
-                robot.outtake.specificValues(constants.scorePose);
                 if (pathFraction(chosenZonePose, constants.scorePose) < constants.getCycleIntakeUntilPercentage()) {
                     robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
                 } else {
@@ -267,6 +267,24 @@ public class Far extends OpMode {
         robot.update();
     }
 
+    /** Flushes the blob path trace to disk. Without this the final segment never lands. */
+    @Override
+    public void stop() {
+        if (robot != null) robot.blob.saveTrace();
+    }
+
+    /**
+     * Fixed-pose shooter: the flywheel and hood are solved once for {@link FarConstants#scorePose} and held there
+     * for the whole auto, so they never chase the live odometry distance or spin down between cycles.
+     * Skipped while a shot is feeding (SLEEP) and once we commit to parking.
+     */
+    private void holdFixedPoseShot() {
+        if (autoStates == AutoStates.SLEEP
+                || autoStates == AutoStates.GO_TO_PARK
+                || autoStates == AutoStates.PARK) return;
+        robot.outtake.specificValues(constants.scorePose);
+    }
+
     long startSleep = 0;
     double sleeptime = 0;
     AutoStates nextState = AutoStates.IDLE;
@@ -311,14 +329,10 @@ public class Far extends OpMode {
     }
     
     private void commandZonePickupDrive() {
-        robot.outtake.specificValues(constants.scorePose);
         robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
 
+        robot.blob.maxPower = 1.0;
         double frac = pathFraction(constants.scorePose, chosenZonePose);
-        if (frac >= constants.getCyclePickupSlowPercentage()) {
-            robot.blob.maxPower = constants.getCyclePickupSlowPower();
-        }
-
 
         if (!veerDecided && frac >= constants.getRescanPercentage() && robot.limelight.hasTarget()) {
             int lft = robot.limelight.getLeftCount();

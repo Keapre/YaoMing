@@ -41,7 +41,7 @@ public class OuttakePositions {
     public static double MIN_TURRET_POSITION = 0.233;
     public static double MAX_TURRET_POSITION = 0.749;
     public static double MIN_TURRET_RANGE = 0.1;
-    public static double MAX_TURRET_RANGE = 0.77;
+    public static double MAX_TURRET_RANGE = 0.91;
 
 
     /*--BLOCKER--*/

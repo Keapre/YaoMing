@@ -226,7 +226,7 @@ public class BlobConfig {
      * Records paths for {@code pusher visualiser}. Only does anything on the dev artifact; the
      * competition one has no recorder to switch on.
      */
-    public static boolean recordTrace = false;
+    public static boolean recordTrace = true;
 
     /** Builds the localizer for {@link #localizerMode}. */
     public static Localizer localizer(HardwareMap hardwareMap, BlobParams params) {

@@ -37,6 +37,7 @@ public class Sensors {
     public enum LightColor {
         OFF(0),
         RED(0.3),
+        SPINNING(0.388),   // shoot commanded but flywheel not yet at velocity (1300us)
         GREEN(0.5),
         BLUE(0.611);
         final double value;
@@ -74,7 +75,7 @@ public class Sensors {
     public static double targetYBlueClose = -67;
 
     public static double targetXRedFar = -70;
-    public static double targetYRedFar = 63;
+    public static double targetYRedFar = 65;
     public static double targetXBlueFar = -72;
     public static double targetYBlueFar = -66.5;
     public double virtualTargetX = targetX;

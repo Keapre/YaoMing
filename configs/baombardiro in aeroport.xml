@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<Robot type="FirstInspires-FTC">
+    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
+        <LynxModule name="Expansion Hub 2" port="2">
+            <goBILDA5202SeriesMotor name="intake" port="0" />
+            <goBILDA5202SeriesMotor name="transfer" port="1" />
+            <goBILDA5202SeriesMotor name="br" port="2" />
+            <goBILDA5202SeriesMotor name="fr" port="3" />
+        </LynxModule>
+        <LynxModule name="Control Hub" port="173">
+            <goBILDA5202SeriesMotor name="shooter1" port="0" />
+            <goBILDA5202SeriesMotor name="shooter2" port="1" />
+            <goBILDA5202SeriesMotor name="bl" port="2" />
+            <goBILDA5202SeriesMotor name="fl" port="3" />
+            <ServoFullRange name="turretL" port="0" />
+            <ServoFullRange name="turretR" port="1" />
+            <ServoFullRange name="blocker" port="2" />
+            <ServoFullRange name="tiltL" port="3" />
+            <ServoFullRange name="tiltR" port="4" />
+            <Servo name="led" port="5" />
+            <DigitalDevice name="laserLeft" port="0" />
+            <DigitalDevice name="laserRight" port="2" />
+            <DigitalDevice name="laserTransfer" port="4" />
+            <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
+            <blobOctoQuadFWv3 name="octoquad" port="0" bus="1" />
+        </LynxModule>
+    </LynxUsbDevice>
+    <EthernetDevice name="Ethernet Device" serialNumber="EthernetOverUsb:eth0:172.29.0.30" name="Ethernet Device" port="0" ipAddress="172.29.0.1" />
+</Robot>

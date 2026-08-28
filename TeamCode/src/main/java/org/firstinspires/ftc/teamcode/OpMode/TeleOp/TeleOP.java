@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.OuttakePositions;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Turret;
 import org.firstinspires.ftc.teamcode.Hardware.Robot;
+import org.firstinspires.ftc.teamcode.Hardware.Sensors;
 import org.firstinspires.ftc.teamcode.Util.Globals.Alliance;
 import org.firstinspires.ftc.teamcode.Util.Globals.Phase;
 import org.firstinspires.ftc.teamcode.Util.Info;
@@ -283,6 +284,10 @@ public class TeleOP extends LinearOpMode
             }else {
                 if (robot.outtake.outtakeState == Outtake.OuttakeState.IDLE) {
                     robot.outtake.start_feed_rapid(OuttakePositions.farLaunchVelocity, OuttakePositions.farLaunchTilt);
+                    // Pressed shoot but flywheel not yet at velocity: keep the normal sequence, flag it on the LED.
+                    if (!robot.outtake.launcher.isReady()) {
+                        robot.sensors.setLedColor(Sensors.LightColor.SPINNING);
+                    }
 
                 } else {
                     // Any other non-IDLE state: STOP
@@ -293,9 +298,9 @@ public class TeleOP extends LinearOpMode
         }
         robot.sensors.toggleSOTM(gg.left_trigger > 0.1);
 
-        if(gg.leftStickButtonOnce() || gg2.startOnce()) {
-            robot.outtake.launcher.toggleZone();
-        }
+//        if(gg.leftStickButtonOnce() || gg2.startOnce()) {
+//            robot.outtake.launcher.toggleZone();
+//        }
 
 
         if(gg.bOnce()) {

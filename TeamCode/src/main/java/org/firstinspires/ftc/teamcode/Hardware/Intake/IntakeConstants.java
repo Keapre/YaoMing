@@ -13,7 +13,7 @@ public class IntakeConstants {
     public static double reversePower = 1;
     public static double intakePowerRecycle = 1;
 
-    public static double transferPowerTransfer = 0.7;
+    public static double transferPowerTransfer = 0.85;
 
     public static double transferReverseTime = 15;   // ms
     public static double transferReversePower = -0.2; // intake power during the reverse window

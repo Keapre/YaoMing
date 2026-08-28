@@ -32,10 +32,10 @@ public class Launcher implements Module {
     Servo tilt2;
 
     public static double offsetPower = 0;
-    public static double[] Distances = {1, 50, 55.2, 58, 60, 63, 66, 69, 70, 85.5, 90.3, 95, 100, 110, 127, 136, 144, 153, 157.9}; //127
+    public static double[] Distances = {1, 50, 55.2, 58, 60, 63, 66, 69, 70, 85.5, 90.3, 95, 100, 110, 127, 136, 144, 153, 157.9,180}; //127
     // Corresponding Velocity values
-    public static double[] velValues = {1320, 1320, 1330, 1360, 1370, 1395, 1400, 1401, 1500, 1550, 1580, 1600, 1700, 1700, 1950, 2050, 2100, 2150, 2250};
-    public static double[] hoodValues = {0.1, 0.1, 0.12, 0.12, 0.13, 0.16, 0.19, 0.2, 0.23, 0.27, 0.27, 0.33, 0.34, 0.36, 0.6, 0.63, 0.63, 0.67, 0.72};
+    public static double[] velValues = {1320, 1320, 1330, 1360, 1370, 1395, 1400, 1401, 1500, 1550, 1580, 1600, 1700, 1950, 1950, 2050, 2100, 2150, 2250,2300};
+    public static double[] hoodValues = {0.1, 0.1, 0.12, 0.12, 0.13, 0.16, 0.19, 0.2, 0.23, 0.27, 0.27, 0.33, 0.34, 0.59, 0.6, 0.63, 0.63, 0.66, 0.7,0.7};
 
 //    public static double[] Distances = {1, 50, 58, 66,70.5, 74, 82, 90, 98,106,114,  130,135,140,145,150,155,160,200};
 //    // Corresponding Velocity values
@@ -120,9 +120,14 @@ public class Launcher implements Module {
         updateOffssetHood = false;
     }
 
+    /** Fixed-pose shot: vel + hood come from the pose we shoot at, not from the live odometry distance. */
     public void goToSpecificValues(Pose pose) {
-        target = velocity.get(sensors.getDistanceFromPose(pose));
-        target_tilt = hood.get(sensors.getDistanceFromPose(pose));
+        double dist = Utils.minMaxClip(sensors.getDistanceFromPose(pose) + distanceOffset + distanceDefault,
+                Distances[0], Distances[Distances.length - 1]);
+        target = Utils.minMaxClip(velocity.get(dist),
+                closeMode ? minCloseZone : minFarZone,
+                closeMode ? maxCloseZone : maxFarZone);
+        target_tilt = hood.get(dist);
         launcherState = LauncherState.GO_TO_VEL_HOOD;
         updateOffssetHood = false;
     }
@@ -190,7 +195,7 @@ public class Launcher implements Module {
     public static double minCloseZone = 1200;
     public static double accelerationWeight = 1;
 
-    public static double maxFarZone = 2900;
+    public static double maxFarZone = 2250;
     public static double minFarZone = 1950;
     public static double distanceOffset = 10;
     public static double distanceDefault = 0;
@@ -432,8 +437,17 @@ public class Launcher implements Module {
         mAhTimer.reset();
     }
     public void primeHood() {
+        primeHoodToDistance(robot.sensors.getShooterDistanceToBackboard());
+    }
+
+    /** Pre-sets the hood to the fixed shooting pose so it does not have to travel once the shot is commanded. */
+    public void primeHood(Pose pose) {
+        primeHoodToDistance(sensors.getDistanceFromPose(pose));
+    }
+
+    private void primeHoodToDistance(double rawDistance) {
         try {
-            double dist = robot.sensors.getShooterDistanceToBackboard() + distanceOffset + distanceDefault;
+            double dist = rawDistance + distanceOffset + distanceDefault;
             target_tilt = hood.get(Utils.minMaxClip(dist, Distances[0], Distances[hoodValues.length - 1]));
         } catch (Exception ignored) {
             target_tilt = 0.3;
