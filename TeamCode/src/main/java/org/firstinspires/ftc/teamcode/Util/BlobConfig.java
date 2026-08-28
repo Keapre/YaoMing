@@ -213,8 +213,21 @@ public class BlobConfig {
     public static double rstApproachTau = 0.25;
     /** How fast a turn to ask for, as opposed to how fast to meet it. */
     public static double rstHeadingTau = 0.3;
-    /** Speed caps, 0 to derive them from the constants and the battery. */
-    public static double rstMaxVelocity = 0, rstMaxAngularVelocity = 0;
+    /**
+     * Speed cap for the RST follower, in/s. 0 would derive it from the constants and the battery.
+     *
+     * <p>Held at 40 rather than derived, on purpose. Derived it comes out near 70, which is quicker
+     * than the position PID ever actually drove this robot, and an auto full of pickup poses is not
+     * the place to find out what happens at a speed nothing has stopped from yet. Forty is what the
+     * identification runs themselves reached and braked from, repeatedly, in both directions.
+     *
+     * <p>Raise it once the stopping distances are measured, which they are not: xDeceleration and
+     * yDeceleration are still the library's defaults and the RST profile brakes on them.
+     */
+    public static double rstMaxVelocity = 40;
+
+    /** Turn rate cap, rad/s. 0 derives it from the constants and the battery. */
+    public static double rstMaxAngularVelocity = 0;
     /** How much of the achievable speed to use. The rest is headroom for the loop. */
     public static double rstSpeedFraction = 0.85;
 

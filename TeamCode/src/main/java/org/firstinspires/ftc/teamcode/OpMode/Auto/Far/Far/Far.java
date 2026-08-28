@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.blob.Blob;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
@@ -69,6 +70,8 @@ public class Far extends OpMode {
 
         constants = new FarConstants();
         constants.buildPaths();
+
+        robot.blob.setMode(FarConstants.useRST ? Blob.State.RST : Blob.State.PID);
 
         robot.outtake.launcher.closeMode = false;
         robot.limelight.pipelineSwitch(FarConstants.limelightPipeline);
@@ -257,6 +260,21 @@ public class Far extends OpMode {
                     setPathState(nextState);
                 }
                 break;
+        }
+
+        // The follower refuses to drive on constants that cannot be right, which in a match would
+        // be a stationary auto. Fall back rather than stop, and say so loudly.
+        if (robot.blob.rstFault != null) {
+            telemetry.addData("RST FAULT, using PID", robot.blob.rstFault);
+            robot.blob.setMode(Blob.State.PID);
+        } else {
+            // Live toggle, so it can be dropped back to the PID from the dashboard mid-match.
+            robot.blob.setMode(FarConstants.useRST ? Blob.State.RST : Blob.State.PID);
+            if (FarConstants.useRST) {
+                telemetry.addData("RST v ref", Math.hypot(
+                        robot.blob.rst.forwardReference, robot.blob.rst.lateralReference));
+                telemetry.addData("RST v now", robot.blob.odo.getSpeedTranslational());
+            }
         }
 
         TelemetryUtil.packet.put("x", robot.blob.odo.getX());

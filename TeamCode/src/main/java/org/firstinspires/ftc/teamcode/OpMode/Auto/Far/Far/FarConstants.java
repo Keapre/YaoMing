@@ -15,6 +15,15 @@ public class FarConstants {
     public static double zoneSpeedThreshold = 10000; //90 px/s @ 640px: 90 * 54.5/640 cred
     public static int zoneSpeedShiftPose = -1;
 
+    /**
+     * Drives with blob's RST follower instead of the position PIDs.
+     *
+     * <p>Live on the dashboard, so it can be turned off mid-match if it misbehaves. If the measured
+     * constants do not add up the follower refuses to drive, and {@link Far} falls back to the PID on
+     * its own rather than sitting still, so this failing cannot cost the auto.
+     */
+    public static boolean useRST = true;
+
     public static int cycleCount = 6;
 
     public static double launcherVelocity = 0;
