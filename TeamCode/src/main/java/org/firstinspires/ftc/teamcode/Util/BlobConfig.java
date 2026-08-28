@@ -216,15 +216,17 @@ public class BlobConfig {
     /**
      * Speed cap for the RST follower, in/s. 0 would derive it from the constants and the battery.
      *
-     * <p>Held at 40 rather than derived, on purpose. Derived it comes out near 70, which is quicker
-     * than the position PID ever actually drove this robot, and an auto full of pickup poses is not
-     * the place to find out what happens at a speed nothing has stopped from yet. Forty is what the
-     * identification runs themselves reached and braked from, repeatedly, in both directions.
+     * <p>Seventy is what the constants say this drivetrain can hold, so this is the whole of it.
      *
-     * <p>Raise it once the stopping distances are measured, which they are not: xDeceleration and
-     * yDeceleration are still the library's defaults and the RST profile brakes on them.
+     * <p>The thing to watch is the stop, not the speed. The profile brakes on xDeceleration and
+     * yDeceleration, and those are still the library's defaults rather than anything measured here.
+     * At 80 in/s^2 a stop from 70 needs 31 inches; if the real figure is nearer 50 it needs 49, and
+     * the difference arrives as overshoot at a pickup pose. The motors are not the limit either way,
+     * they can brake at over a thousand, so what those numbers describe is the carpet.
+     *
+     * <p>blob: Deceleration Tuner measures them. It is the one input the autotune does not produce.
      */
-    public static double rstMaxVelocity = 40;
+    public static double rstMaxVelocity = 70;
 
     /** Turn rate cap, rad/s. 0 derives it from the constants and the battery. */
     public static double rstMaxAngularVelocity = 0;
