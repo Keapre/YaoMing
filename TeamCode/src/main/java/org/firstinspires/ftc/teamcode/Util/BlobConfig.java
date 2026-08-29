@@ -98,7 +98,15 @@ public class BlobConfig {
     public static double hP = 1.2, hI = 0, hD = 0.11;
 
     // Deceleration, from the deceleration tuner
-    public static double xDeceleration = 80, yDeceleration = 90;
+    // Measured by autotune, from the stop at the end of every translational run. Two runs agreed
+    // to within four percent, which is better than most things here. They were 80 and 90 before,
+    // library defaults nobody had checked, and the RST profile brakes on them: too low and it
+    // creeps in from further out than it needs to.
+    //
+    // Measured with the volts off and the motors braking, so a floor rather than the hardest this
+    // drivetrain could stop under power. Do not raise them by hand.
+    public static double xDeceleration = 116.42518339896137;
+    public static double yDeceleration = 124.96439969057049;
 
     public static double lateralMultiplier = 1.4;
     public static double voltageConstant = 12;
@@ -187,33 +195,35 @@ public class BlobConfig {
     // All zero means not measured, and Blob.State.RST refuses to drive rather than following
     // a model of nothing. State.PID ignores them entirely, so leaving them empty costs nothing.
     // -----------------------------------------------------------------------------------
-    // Third autotune run. Kept over the first because the second and third agree with each other
-    // and the first does not: it put the forward time constant at 0.137s where both others say
-    // 0.229. That matters more than it sounds. The controller takes tau and kDc=1/kV as its
-    // description of the robot, and the first run described one that responds faster and needs more
-    // volts per inch per second than the real thing, so it commanded too much and overshot.
-    public static double forwardKS = 1.4335532615471358;
-    public static double forwardKV = 0.1337238978420682;
-    public static double forwardKA = 0.030561839570983736;
+    // The first run measured up to the speeds the follower actually uses, with an acceleration
+    // that belongs to the sample it is attached to rather than lagging it. Both mattered.
+    //
+    // It disagrees with the earlier runs in a way that explains the overshoot at speed. They only
+    // ever saw 41 in/s and the straight line they fitted through that says holding 60 in/s costs
+    // 9.46V. This one went to 63 and says it costs 10.97, sixteen percent more, so the drivetrain
+    // is not quite first order out there and the earlier fits were extrapolating into exactly the
+    // region the follower spends its time in. They also promised a top speed of 71 in/s where the
+    // real one is 60.
+    public static double forwardKS = 1.0265061285222288;
+    public static double forwardKV = 0.1657311523246503;
+    public static double forwardKA = 0.03269039772122707;
 
-    public static double lateralKS = 2.295215359347804;
-    public static double lateralKV = 0.15088689056169113;
-    public static double lateralKA = 0.03098061592275027;
+    public static double lateralKS = 1.7969059280731035;
+    public static double lateralKV = 0.18646240744510256;
+    public static double lateralKA = 0.031302222741293906;
 
-    public static double angularKS = 1.340802170486282;
-    public static double angularKV = 1.919808452731402;
-    public static double angularKA = 0.1577146464834829;
+    public static double angularKS = 1.2691293834385036;
+    public static double angularKV = 1.9532533231830325;
+    public static double angularKA = 0.114324985548379;
 
     /**
      * How fast an RST velocity loop should converge, seconds.
      *
-     * <p>Half the slowest axis time constant, which is the forward one at 0.229s. It is no longer
-     * the four-loop floor: that was 0.08, and it only bound while the first run's optimistic 0.137s
-     * was believed.
+     * <p>Half the slowest axis time constant, the forward one at 0.197s.
      */
-    public static double rstTauClosedLoop = 0.11427216849107313;
+    public static double rstTauClosedLoop = 0.09862478255503207;
     /** Its integral pole. Disturbances only: it does not slow tracking down. */
-    public static double rstTauIntegral = 0.45708867396429254;
+    public static double rstTauIntegral = 0.3944991302201283;
     /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
     public static double rstApproachTau = 0.25;
     /** How fast a turn to ask for, as opposed to how fast to meet it. */
@@ -234,7 +244,9 @@ public class BlobConfig {
     /**
      * Speed cap for the RST follower, in/s. 0 would derive it from the constants and the battery.
      *
-     * <p>Seventy is what the constants say this drivetrain can hold, so this is the whole of it.
+     * <p>Zero, so it follows the constants and the battery rather than a number that has to be
+     * revisited every time either changes. On this drivetrain that works out near 59 in/s: the top
+     * speed is 70, and rstSpeedFraction leaves the rest as headroom for the loop to correct with.
      *
      * <p>The thing to watch is the stop, not the speed. The profile brakes on xDeceleration and
      * yDeceleration, and those are still the library's defaults rather than anything measured here.
@@ -244,7 +256,7 @@ public class BlobConfig {
      *
      * <p>blob: Deceleration Tuner measures them. It is the one input the autotune does not produce.
      */
-    public static double rstMaxVelocity = 70;
+    public static double rstMaxVelocity = 0;
 
     /** Turn rate cap, rad/s. 0 derives it from the constants and the battery. */
     public static double rstMaxAngularVelocity = 0;
