@@ -223,11 +223,23 @@ public class BlobConfig {
      */
     public static double rstTauClosedLoop = 0.09862478255503207;
     /** Its integral pole. Disturbances only: it does not slow tracking down. */
-    public static double rstTauIntegral = 0.3944991302201283;
+    /**
+     * Slowed from 0.394. The integrator is what stores a correction that did not take effect, and
+     * under braking that happens: the wheels slip, the heading does not come back, the integrator
+     * winds, and when grip returns the stored command arrives all at once.
+     */
+    public static double rstTauIntegral = 0.8;
     /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
     public static double rstApproachTau = 0.25;
-    /** How fast a turn to ask for, as opposed to how fast to meet it. */
-    public static double rstHeadingTau = 0.3;
+    /**
+     * How fast a turn to ask for, as opposed to how fast to meet it.
+     *
+     * <p>Raised from 0.3 because the heading wobbled while braking. Braking is when the wheels are
+     * closest to slipping, so a heading correction asked for then is the one least likely to take
+     * effect, and the loop answers by asking for more. Half a second is still a brisk correction:
+     * ten degrees out asks for 0.35 rad/s, closed in about half a second.
+     */
+    public static double rstHeadingTau = 0.5;
 
     /**
      * Reference speed over which the whole kS is applied. Below it the term scales down.
@@ -237,7 +249,13 @@ public class BlobConfig {
      * time the robot crosses the line it is following.
      */
     public static double rstStaticRampSpeed = 8.0;
-    public static double rstStaticRampOmega = 0.8;
+
+    /**
+     * Raised from 0.8 for the same reason. At 0.8 a heading error of 14 degrees already drew the
+     * whole angular kS; at 2.0 the term stays proportional through everything a settling heading
+     * does and only reaches full value on a real commanded turn.
+     */
+    public static double rstStaticRampOmega = 2.0;
 
     /** Inside this and slow, the follower stops commanding instead of hunting. 0 holds position. */
     public static double rstSettleTolerance = 1.0;
