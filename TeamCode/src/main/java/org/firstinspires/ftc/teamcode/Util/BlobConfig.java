@@ -187,28 +187,33 @@ public class BlobConfig {
     // All zero means not measured, and Blob.State.RST refuses to drive rather than following
     // a model of nothing. State.PID ignores them entirely, so leaving them empty costs nothing.
     // -----------------------------------------------------------------------------------
-    public static double forwardKS = 1.005556977145929;
-    public static double forwardKV = 0.1531052616714671;
-    public static double forwardKA = 0.020939451511571863;
+    // Third autotune run. Kept over the first because the second and third agree with each other
+    // and the first does not: it put the forward time constant at 0.137s where both others say
+    // 0.229. That matters more than it sounds. The controller takes tau and kDc=1/kV as its
+    // description of the robot, and the first run described one that responds faster and needs more
+    // volts per inch per second than the real thing, so it commanded too much and overshot.
+    public static double forwardKS = 1.4335532615471358;
+    public static double forwardKV = 0.1337238978420682;
+    public static double forwardKA = 0.030561839570983736;
 
-    public static double lateralKS = 1.8496674201113557;
-    public static double lateralKV = 0.16649036357220193;
-    public static double lateralKA = 0.018977932127223332;
+    public static double lateralKS = 2.295215359347804;
+    public static double lateralKV = 0.15088689056169113;
+    public static double lateralKA = 0.03098061592275027;
 
-    public static double angularKS = 1.2282686278472141;
-    public static double angularKV = 1.984012525580037;
-    public static double angularKA = 0.1354479467776826;
+    public static double angularKS = 1.340802170486282;
+    public static double angularKV = 1.919808452731402;
+    public static double angularKA = 0.1577146464834829;
 
     /**
      * How fast an RST velocity loop should converge, seconds.
      *
-     * <p>0.08 is the four-loop floor rather than anything about this drivetrain: half the slowest
-     * axis tau would be 0.068, and no pole placement beats the rate the loop runs at. So the loop
-     * time is the limit here, not the robot.
+     * <p>Half the slowest axis time constant, which is the forward one at 0.229s. It is no longer
+     * the four-loop floor: that was 0.08, and it only bound while the first run's optimistic 0.137s
+     * was believed.
      */
-    public static double rstTauClosedLoop = 0.08;
+    public static double rstTauClosedLoop = 0.11427216849107313;
     /** Its integral pole. Disturbances only: it does not slow tracking down. */
-    public static double rstTauIntegral = 0.32;
+    public static double rstTauIntegral = 0.45708867396429254;
     /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
     public static double rstApproachTau = 0.25;
     /** How fast a turn to ask for, as opposed to how fast to meet it. */
