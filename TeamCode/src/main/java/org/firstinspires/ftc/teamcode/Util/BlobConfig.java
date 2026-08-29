@@ -213,6 +213,19 @@ public class BlobConfig {
     public static double rstApproachTau = 0.25;
     /** How fast a turn to ask for, as opposed to how fast to meet it. */
     public static double rstHeadingTau = 0.3;
+
+    /**
+     * Reference speed over which the whole kS is applied. Below it the term scales down.
+     *
+     * <p>Turn these DOWN for more push out of corners, UP if the robot wiggles as it settles: too
+     * small and the term stops being a ramp and becomes a switch, reversing a couple of volts every
+     * time the robot crosses the line it is following.
+     */
+    public static double rstStaticRampSpeed = 8.0;
+    public static double rstStaticRampOmega = 0.8;
+
+    /** Inside this and slow, the follower stops commanding instead of hunting. 0 holds position. */
+    public static double rstSettleTolerance = 1.0;
     /**
      * Speed cap for the RST follower, in/s. 0 would derive it from the constants and the battery.
      *
@@ -236,6 +249,15 @@ public class BlobConfig {
     // Curves
     public static double splineLookahead = 6.0;
     public static int splineSamples = 64;
+
+    // Heading modes. Only read when headingMode is something other than FIXED.
+    /**
+     * Fraction of the leg at which a tangent heading stops following the direction of travel and
+     * starts rotating onto the target pose's own heading. 1 stays tangential all the way.
+     */
+    public static double tangentSettleFraction = 0.8;
+    /** Inches. Below this the aim vector is too short for its angle to be trusted. */
+    public static double tangentMinDistance = 2.0;
 
     /**
      * Records paths for {@code pusher visualiser}. Only does anything on the dev artifact; the
@@ -291,6 +313,9 @@ public class BlobConfig {
         p.rstTauIntegral = rstTauIntegral;
         p.rstApproachTau = rstApproachTau;
         p.rstHeadingTau = rstHeadingTau;
+        p.rstStaticRampSpeed = rstStaticRampSpeed;
+        p.rstStaticRampOmega = rstStaticRampOmega;
+        p.rstSettleTolerance = rstSettleTolerance;
         p.rstMaxVelocity = rstMaxVelocity;
         p.rstMaxAngularVelocity = rstMaxAngularVelocity;
         p.rstSpeedFraction = rstSpeedFraction;
@@ -327,6 +352,8 @@ public class BlobConfig {
 
         p.splineLookahead = splineLookahead;
         p.splineSamples = splineSamples;
+        p.tangentSettleFraction = tangentSettleFraction;
+        p.tangentMinDistance = tangentMinDistance;
         p.recordTrace = recordTrace;
     }
 
