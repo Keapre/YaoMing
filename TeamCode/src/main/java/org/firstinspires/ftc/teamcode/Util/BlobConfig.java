@@ -94,7 +94,7 @@ public class BlobConfig {
     public static double defaultTransThresh = 2;
 
     // PID. kI and hI are ignored: Blob.update() forces the integral term to zero.
-    public static double kP = 0.05, kI = 0, kD = 0.006;
+    public static double kP = 0.07, kI = 0, kD = 0.006;
     public static double hP = 1.2, hI = 0, hD = 0.11;
 
     // Deceleration, from the deceleration tuner

@@ -15,14 +15,7 @@ public class FarConstants {
     public static double zoneSpeedThreshold = 10000; //90 px/s @ 640px: 90 * 54.5/640 cred
     public static int zoneSpeedShiftPose = -1;
 
-    /**
-     * Drives with blob's RST follower instead of the position PIDs.
-     *
-     * <p>Live on the dashboard, so it can be turned off mid-match if it misbehaves. If the measured
-     * constants do not add up the follower refuses to drive, and {@link Far} falls back to the PID on
-     * its own rather than sitting still, so this failing cannot cost the auto.
-     */
-    public static boolean useRST = true;
+    public static boolean useRST = false;
 
     public static int cycleCount = 6;
 
@@ -47,7 +40,7 @@ public class FarConstants {
 
 
     public static double pickUp3XIntermediary  = 36,pickUp3YIntermediairy = 24, pickUp3HeadingIntermediary = Math.PI/2;
-    public static double pickUp3X = 36,pickUp3Y= 54, pickUp3Heading = Math.PI/2;
+    public static double pickUp3X = 36,pickUp3Y= 62.5, pickUp3Heading = Math.PI/2;
     public Pose pickUpPose3;
     public Pose pickUpPose3Intermediary;
 
@@ -62,7 +55,7 @@ public class FarConstants {
     public static double startX = 63.21, startY = 17.77, startHeading = Math.PI/2;
     public Pose startPose;
 
-    public static double humanPlayerX = 63.90, humanPlayerY = 61.5, humanPlayerHeading = Math.PI/2;
+    public static double humanPlayerX = 63.90, humanPlayerY = 62.5, humanPlayerHeading = Math.PI/2;
     public Pose humanPlayerPose;
 
     public static double scoreX = 55, scoreY = 14, scoreHeading = 1.650;
@@ -71,9 +64,9 @@ public class FarConstants {
 
 
     // 3 zones, equally spaced across the far pickup lane (X 64.5 -> 27.3, step 18.6"), all at Y=58.92.
-    public static double zone0X = 63.90, zone0Y = 61.5, zone0Heading = Math.PI/2;
-    public static double zone1X = 48.24, zone1Y = 61.5, zone1Heading = Math.PI/2;
-    public static double zone2X = 28.47, zone2Y = 61.5, zone2Heading = Math.PI/2;
+    public static double zone0X = 63.90, zone0Y = 62.5, zone0Heading = Math.PI/2;
+    public static double zone1X = 48.24, zone1Y = 62.5, zone1Heading = Math.PI/2;
+    public static double zone2X = 28.47, zone2Y = 62.5, zone2Heading = Math.PI/2;
     public Pose zonePose0, zonePose1, zonePose2;
     public Pose[] zonePoses;
 

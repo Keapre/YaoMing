@@ -13,8 +13,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * <h3>Plant model (from open-loop system ID, see FlywheelSysId)</h3>
  * The flywheel is a clean first-order system, velocity in encoder ticks/sec vs. motor power:
  * <pre>
- *   steady state : vel = {@link #K_DC} * power - offset     (K_DC ~ 2564 tps per unit power)
- *   dynamics     : first order, time constant {@link #TAU} ~ 0.80 s
+ *   steady state : vel = {@link #K_DC} * power - offset     (K_DC ~ 2962 tps per unit power)
+ *   dynamics     : first order, time constant {@link #TAU} ~ 0.46 s
  * </pre>
  * Discretised with a zero-order hold at the loop period {@code Ts}:
  * <pre>
@@ -40,38 +40,45 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class RSTFlywheelController {
 
-    // ---- Identified plant (FlywheelSysId 2026-08-28 run 213616, 11-step sweep, ~13.1 V) ----
+    // ---- Identified plant (FlywheelSysId 2026-08-29 run 113957, 11-step sweep, ~13.6 V) ----
     //
-    // Versus the 2026-08-26 run this wheel lost ~17% of its top speed (2347 -> 1937 tps at full
-    // power) while K_DC barely moved (2641 -> 2564). Nearly all of it went into the offset, which
-    // more than doubled (292 -> 618 tps), and TAU, which went 0.50 -> 0.81 s. That is added drag,
-    // not a different motor. See the note on MAX ACHIEVABLE VELOCITY below before trusting a LUT
-    // entry above ~1900 tps.
+    // The drag that showed up in the 2026-08-28 run is gone. Normalized per volt, so the three runs
+    // are comparable across their different battery states:
+    //
+    //     run      K_DC/V   ceiling/V
+    //     08-26     207.9     184.7
+    //     08-28     195.7     147.8   <- dragging
+    //     08-29     217.5     189.5   <- fixed, and slightly better than the 08-26 baseline
+    //
+    // The offset came back down (618 -> 378 tps) and TAU with it (0.81 -> 0.46 s), which is what
+    // removing friction looks like. The headline 2581 tps ceiling is partly the fresher battery;
+    // per volt the wheel is ~2.6% better than it was on 08-26, not 33%.
     /**
      * Steady-state gain: ticks/sec per unit motor power. Voltage-normalized fit over the high-power
-     * region (power >= 0.60, where we actually shoot): vel = 2564*power - 618. The full-range fit is
-     * ~2277; the plant is steeper near the operating point, so we use the high-power fit.
+     * region (power >= 0.60, where we actually shoot): vel = 2962*power - 378. The full-range fit is
+     * ~2838; the plant is steeper near the operating point, so we use the high-power fit.
      */
-    public static double K_DC = 2564.0;
+    public static double K_DC = 2962.0;
     /**
-     * Open-loop spin-up time constant, seconds. TAU is power-dependent - ~0.60 at mid power, ~0.81
+     * Open-loop spin-up time constant, seconds. TAU is power-dependent - ~0.38 at mid power, ~0.46
      * near the far-zone operating point (0.85-1.00 power). Since far is the default shooting mode,
      * TAU is set to the operating-point value, not the mid-range one.
      */
-    public static double TAU = 0.80;
+    public static double TAU = 0.46;
 
     // ---- Feedforward (from the same fit) used only to seed the integrator on reset ----
     /** Power per tps (~1/K_DC). */
-    public static double KV_FF = 0.000390;
-    /** Static/deadband power (high-power fit offset 618 tps / gain 2564). */
-    public static double KS_FF = 0.24;
+    public static double KV_FF = 0.000338;
+    /** Static/deadband power (high-power fit offset 378 tps / gain 2962). */
+    public static double KS_FF = 0.128;
 
     /**
      * MAX ACHIEVABLE VELOCITY, tps, at {@link #V_NOMINAL} and power 1.0. Not used by the loop - it
-     * is here so the number is written down. Scale it by (voltage / V_NOMINAL) for a sagged battery.
-     * Any target above this is unreachable and {@code Launcher.isReady()} will never go true.
+     * is here so the number is written down. Scale it by (voltage / V_NOMINAL) for a sagged battery:
+     * ~2274 tps at 12.0 V, ~2179 at 11.5 V. Any target above that is unreachable and
+     * {@code Launcher.isReady()} will never go true.
      */
-    public static double V_MAX_AT_NOMINAL = 1937.0;
+    public static double V_MAX_AT_NOMINAL = 2581.0;
 
     // ---- Closed-loop tuning knobs (the two things you actually tune) ----
     /** Tracking closed-loop time constant, seconds. Smaller = snappier spin-up. */
@@ -84,8 +91,8 @@ public class RSTFlywheelController {
     /** Lower bound. 0 = coast only (no active braking); negative allows the motors to brake. */
     public static double MIN_POWER = -0.25;
     public static boolean USE_VOLTAGE_COMP = true;
-    /** Battery voltage the plant gain K_DC was identified at (2026-08-28 run 213616 averaged ~13.1 V). */
-    public static double V_NOMINAL = 13.1;
+    /** Battery voltage the plant gain K_DC was identified at (2026-08-29 run 113957 averaged ~13.6 V). */
+    public static double V_NOMINAL = 13.62;
 
     // ---- dt guard ----
     public static double DT_MIN = 0.004;

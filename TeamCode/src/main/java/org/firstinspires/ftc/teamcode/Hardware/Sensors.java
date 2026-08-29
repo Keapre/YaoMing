@@ -74,8 +74,8 @@ public class Sensors {
     public static double targetXBlueClose = -69;
     public static double targetYBlueClose = -67;
 
-    public static double targetXRedFar = -70;
-    public static double targetYRedFar = 65;
+    public static double targetXRedFar = -66;
+    public static double targetYRedFar = 73;
     public static double targetXBlueFar = -72;
     public static double targetYBlueFar = -66.5;
     public double virtualTargetX = targetX;

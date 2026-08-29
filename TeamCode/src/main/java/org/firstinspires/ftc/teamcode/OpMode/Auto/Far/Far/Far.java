@@ -76,7 +76,7 @@ public class Far extends OpMode {
         robot.outtake.launcher.closeMode = false;
         robot.limelight.pipelineSwitch(FarConstants.limelightPipeline);
         robot.limelight.setLamp(true);
-        robot.outtake.launcher.autoAimOn(false);
+        robot.outtake.launcher.autoAimOn(true);
         robot.outtake.outtakeState = Outtake.OuttakeState.IDLE;
         robot.sensors.setPoseAlign(false);
         robot.outtake.turret.turretState = Turret.TurretState.TRACKING;
@@ -88,7 +88,7 @@ public class Far extends OpMode {
         robot.blob.setPose(constants.startPose);
         robot.blob.odo.update();
         robot.sensors.update();
-        robot.outtake.primeAimForAuto(constants.scorePose);
+        robot.outtake.primeAimForAuto();
 
         telemetry.addData("Limelight pipeline", selectedPipeline);
         telemetry.update();
@@ -122,7 +122,7 @@ public class Far extends OpMode {
         telemetry.addData("shooter target vel", robot.outtake.launcher.target);
         telemetry.update();
 
-        holdFixedPoseShot();
+        holdLiveAim();
 
         switch (autoStates) {
             case IDLE:
@@ -291,16 +291,14 @@ public class Far extends OpMode {
         if (robot != null) robot.blob.saveTrace();
     }
 
-    /**
-     * Fixed-pose shooter: the flywheel and hood are solved once for {@link FarConstants#scorePose} and held there
-     * for the whole auto, so they never chase the live odometry distance or spin down between cycles.
-     * Skipped while a shot is feeding (SLEEP) and once we commit to parking.
+/**
+     * Live aim: parks the outtake in IDLE, whose adaptive branch re-solves vel + hood from the live
+     * odometry distance every loop (and keeps the wheel spinning at that target rather than winding
+     * down between cycles). Skipped during SLEEP, where the feed state machine owns the outtake.
      */
-    private void holdFixedPoseShot() {
-        if (autoStates == AutoStates.SLEEP
-                || autoStates == AutoStates.GO_TO_PARK
-                || autoStates == AutoStates.PARK) return;
-        robot.outtake.specificValues(constants.scorePose);
+    private void holdLiveAim() {
+        if (autoStates == AutoStates.SLEEP) return;
+        robot.outtake.setOuttakeState(Outtake.OuttakeState.IDLE);
     }
 
     long startSleep = 0;

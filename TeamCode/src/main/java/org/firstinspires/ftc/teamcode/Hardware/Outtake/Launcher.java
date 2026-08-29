@@ -160,8 +160,8 @@ public class Launcher implements Module {
     public static double power;
 
     public static double hood_offset_close = -0.035;
-    public static double hood_offset_far = -0.05;
-    public static double offsetTicks = 0;
+    public static double hood_offset_far = 0;
+    public static double offsetTicks = 100;
 
     public double getHoodPosition() {
         return target_tilt;
@@ -437,17 +437,8 @@ public class Launcher implements Module {
         mAhTimer.reset();
     }
     public void primeHood() {
-        primeHoodToDistance(robot.sensors.getShooterDistanceToBackboard());
-    }
-
-    /** Pre-sets the hood to the fixed shooting pose so it does not have to travel once the shot is commanded. */
-    public void primeHood(Pose pose) {
-        primeHoodToDistance(sensors.getDistanceFromPose(pose));
-    }
-
-    private void primeHoodToDistance(double rawDistance) {
         try {
-            double dist = rawDistance + distanceOffset + distanceDefault;
+            double dist = robot.sensors.getShooterDistanceToBackboard() + distanceOffset + distanceDefault;
             target_tilt = hood.get(Utils.minMaxClip(dist, Distances[0], Distances[hoodValues.length - 1]));
         } catch (Exception ignored) {
             target_tilt = 0.3;
