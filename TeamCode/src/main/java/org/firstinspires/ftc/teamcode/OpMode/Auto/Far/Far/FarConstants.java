@@ -17,7 +17,7 @@ public class FarConstants {
 
     public static boolean useRST = false;
 
-    public static int cycleCount = 6;
+    public static int cycleCount = 5;
 
     public static double launcherVelocity = 0;
     public static double hoodPosition = 0;

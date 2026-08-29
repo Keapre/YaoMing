@@ -74,8 +74,8 @@ public class Sensors {
     public static double targetXBlueClose = -69;
     public static double targetYBlueClose = -67;
 
-    public static double targetXRedFar = -66;
-    public static double targetYRedFar = 73;
+    public static double targetXRedFar = -65;
+    public static double targetYRedFar = 75;
     public static double targetXBlueFar = -72;
     public static double targetYBlueFar = -66.5;
     public double virtualTargetX = targetX;
@@ -357,7 +357,7 @@ public class Sensors {
             laserLeftBlocked = laserLeft.getValue();
             if (laserLeftBlocked && !lastLaserLeft) {
                 firstTrueLeft = System.currentTimeMillis();
-            } else if (!laserLeftBlocked && !lastLaserLeft) {
+            } else if (!laserLeftBlocked) {
                 firstTrueLeft = System.currentTimeMillis();
             }
         } else {
@@ -373,7 +373,7 @@ public class Sensors {
             laserRightBlocked = laserRight.getValue();
             if (laserRightBlocked && !lastLaserRight) {
                 firstTrueRight = System.currentTimeMillis();
-            } else if (!laserRightBlocked && !lastLaserRight) {
+            } else if (!laserRightBlocked) {
                 firstTrueRight = System.currentTimeMillis();
             }
         } else {
@@ -384,9 +384,10 @@ public class Sensors {
             lastLaserTransfer = laserTransferBlocked;
             laserTransferBlocked = laserTransfer.getValue();
 
+
             if (laserTransferBlocked && !lastLaserTransfer) {
                 firstTrueTransfer = System.currentTimeMillis();
-            } else if (!laserTransferBlocked && !lastLaserTransfer) {
+            } else if (!laserTransferBlocked) {
                 firstTrueTransfer = System.currentTimeMillis();
             }
         } else {
@@ -757,14 +758,14 @@ public class Sensors {
     }
 
     public boolean areAllLasersBlockedForTime() {
-        if (Info.phase == Phase.AUTONOMOUS) { ///TEST
-            return getHowLongLeft() > IntakeConstants.laserLeftStopDelay * autoSensorLaser &&
-                    getHowLongRight() > IntakeConstants.laserRightStopDelay * autoSensorLaser &&
-                    getHowLongTransfer() > IntakeConstants.laserTransferStopDelay * autoSensorLaser;
-        }
-        return getHowLongLeft() > IntakeConstants.laserLeftStopDelay &&
-                getHowLongRight() > IntakeConstants.laserRightStopDelay &&
-                getHowLongTransfer() > IntakeConstants.laserTransferStopDelay;
+        double scale = (Info.phase == Phase.AUTONOMOUS) ? autoSensorLaser : 1.0; ///TEST
+        return blockedFor(laserLeftBlocked, getHowLongLeft(), IntakeConstants.laserLeftStopDelay * scale)
+                && blockedFor(laserRightBlocked, getHowLongRight(), IntakeConstants.laserRightStopDelay * scale)
+                && blockedFor(laserTransferBlocked, getHowLongTransfer(), IntakeConstants.laserTransferStopDelay * scale);
+    }
+
+    private static boolean blockedFor(boolean blocked, double heldMs, double requiredMs) {
+        return blocked && heldMs > requiredMs;
     } public boolean areAllLasersClearForTime() {
         if (Info.phase == Phase.AUTONOMOUS) { ///TEST
             return getHowLongLeft() < IntakeConstants.laserLeftStopDelay * autoSensorLaser &&

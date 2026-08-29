@@ -82,9 +82,9 @@ public class RSTFlywheelController {
 
     // ---- Closed-loop tuning knobs (the two things you actually tune) ----
     /** Tracking closed-loop time constant, seconds. Smaller = snappier spin-up. */
-    public static double TAU_CL = 0.18;
+    public static double TAU_CL = 0.15;
     /** Disturbance-rejection (integrator) time constant, seconds. Smaller = faster RPM recovery after a shot. */
-    public static double TAU_I = 0.45;
+    public static double TAU_I = 0.4;
 
     // ---- Output / voltage ----
     public static double MAX_POWER = 1.0;
