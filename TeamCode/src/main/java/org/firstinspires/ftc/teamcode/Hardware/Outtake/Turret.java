@@ -50,7 +50,7 @@ public class Turret implements Module {
     public static boolean useAngularComp = false;
     public static double turretLag = 0.1;
     public static double cachingFix = 0.0005;
-    public static double offset = 0.004;
+    public static double offset = -0.002;
     public double lastPos = 0;
     public double launchingMaxError = 0.01;
     public boolean forceUpdate = false;

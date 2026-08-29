@@ -122,6 +122,7 @@ public class Far extends OpMode {
         telemetry.addData("shooter target vel", robot.outtake.launcher.target);
         telemetry.update();
 
+        applyHeadingMode();
         holdLiveAim();
 
         switch (autoStates) {
@@ -296,6 +297,30 @@ public class Far extends OpMode {
      * odometry distance every loop (and keeps the wheel spinning at that target rather than winding
      * down between cycles). Skipped during SLEEP, where the feed state machine owns the outtake.
      */
+    /**
+     * Only the run out to spike 3, straight after the preload, is tangential. That leg starts at the
+     * score pose and cuts across to the intermediary at a bearing of about 159 degrees while the
+     * pose asks for 90, so holding a fixed heading strafes most of the way. Facing the direction of
+     * travel instead drives it straight, and blob rotates onto the pose's own heading over the last
+     * (1 - tangentSettleFraction) of the leg.
+     *
+     * <p>Everything else stays on FIXED, which is blob's default and how this auto ran before.
+     * WAIT_PICKUP3 shares its leg's mode: the drive target is still live there, and switching mode
+     * mid-leg would move the heading goal.
+     */
+    private void applyHeadingMode() {
+        switch (autoStates) {
+            case GO_PICKUP3_INTER:
+            case GO_PICKUP3:
+            case WAIT_PICKUP3:
+                robot.blob.headingMode = Blob.HeadingMode.TANGENT;
+                break;
+            default:
+                robot.blob.headingMode = Blob.HeadingMode.FIXED;
+                break;
+        }
+    }
+
     private void holdLiveAim() {
         if (autoStates == AutoStates.SLEEP) return;
         robot.outtake.setOuttakeState(Outtake.OuttakeState.IDLE);

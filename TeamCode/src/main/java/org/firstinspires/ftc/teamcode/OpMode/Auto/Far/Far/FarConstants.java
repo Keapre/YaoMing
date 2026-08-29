@@ -15,7 +15,7 @@ public class FarConstants {
     public static double zoneSpeedThreshold = 10000; //90 px/s @ 640px: 90 * 54.5/640 cred
     public static int zoneSpeedShiftPose = -1;
 
-    public static boolean useRST = false;
+    public static boolean useRST = true;
 
     public static int cycleCount = 5;
 
@@ -55,7 +55,7 @@ public class FarConstants {
     public static double startX = 63.21, startY = 17.77, startHeading = Math.PI/2;
     public Pose startPose;
 
-    public static double humanPlayerX = 63.90, humanPlayerY = 62.5, humanPlayerHeading = Math.PI/2;
+    public static double humanPlayerX = 64.5, humanPlayerY = 62.5, humanPlayerHeading = Math.PI/2;
     public Pose humanPlayerPose;
 
     public static double scoreX = 55, scoreY = 14, scoreHeading = 1.650;
@@ -64,14 +64,14 @@ public class FarConstants {
 
 
     // 3 zones, equally spaced across the far pickup lane (X 64.5 -> 27.3, step 18.6"), all at Y=58.92.
-    public static double zone0X = 63.90, zone0Y = 62.5, zone0Heading = Math.PI/2;
+    public static double zone0X = 64.5, zone0Y = 63, zone0Heading = (Math.PI/2)+0.3;
     public static double zone1X = 48.24, zone1Y = 62.5, zone1Heading = Math.PI/2;
     public static double zone2X = 28.47, zone2Y = 62.5, zone2Heading = Math.PI/2;
     public Pose zonePose0, zonePose1, zonePose2;
     public Pose[] zonePoses;
 
 
-    public static double parkX = 61.30, parkY = 31.24, parkHeading = Math.PI/2;
+    public static double parkX = 61.30, parkY = 32.5, parkHeading = Math.PI/2;
     public Pose parkPose;
 
 
