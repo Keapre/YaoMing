@@ -110,9 +110,10 @@ public class BlobConfig {
     // these numbers, so planning every stop at the limit means arriving at every stop with no grip
     // left over, and a wheel that is slipping cannot hold heading. That is the wobble.
     //
-    // About 65% of measured, which leaves the rest for steering while it stops.
-    public static double xDeceleration = 75;
-    public static double yDeceleration = 80;
+    // About 73% of measured, which leaves the rest for steering while it stops. 65% held the
+    // heading but gave away more of the approach than it needed to.
+    public static double xDeceleration = 85;
+    public static double yDeceleration = 90;
 
     public static double lateralMultiplier = 1.4;
     public static double voltageConstant = 12;
@@ -242,7 +243,7 @@ public class BlobConfig {
      * heading has to settle, and it cannot do that while the translation loop is still asking for
      * everything the wheels have.
      */
-    public static double rstApproachTau = 0.35;
+    public static double rstApproachTau = 0.30;
     /**
      * How fast a turn to ask for, as opposed to how fast to meet it.
      *
