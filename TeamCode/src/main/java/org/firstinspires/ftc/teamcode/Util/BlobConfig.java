@@ -105,8 +105,14 @@ public class BlobConfig {
     //
     // Measured with the volts off and the motors braking, so a floor rather than the hardest this
     // drivetrain could stop under power. Do not raise them by hand.
-    public static double xDeceleration = 116.42518339896137;
-    public static double yDeceleration = 124.96439969057049;
+    // NOT the measured figures, on purpose. Autotune measured 116 and 125, and those are the most
+    // this drivetrain can do: at that rate the wheels are at the edge of grip. The profile brakes on
+    // these numbers, so planning every stop at the limit means arriving at every stop with no grip
+    // left over, and a wheel that is slipping cannot hold heading. That is the wobble.
+    //
+    // About 65% of measured, which leaves the rest for steering while it stops.
+    public static double xDeceleration = 75;
+    public static double yDeceleration = 80;
 
     public static double lateralMultiplier = 1.4;
     public static double voltageConstant = 12;
@@ -210,7 +216,7 @@ public class BlobConfig {
 
     public static double lateralKS = 1.7969059280731035;
     public static double lateralKV = 0.18646240744510256;
-    public static double lateralKA = 0.031302222741293906;
+    public static double lateralKA = 0.031202222741293906;
 
     public static double angularKS = 1.2691293834385036;
     public static double angularKV = 1.9532533231830325;
@@ -229,8 +235,14 @@ public class BlobConfig {
      * winds, and when grip returns the stored command arrives all at once.
      */
     public static double rstTauIntegral = 0.8;
-    /** Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner. */
-    public static double rstApproachTau = 0.25;
+    /**
+     * Final approach time constant, seconds. Larger settles gentler, smaller arrives sooner.
+     *
+     * <p>Raised from 0.25 along with the deceleration margin: the last few inches are where the
+     * heading has to settle, and it cannot do that while the translation loop is still asking for
+     * everything the wheels have.
+     */
+    public static double rstApproachTau = 0.35;
     /**
      * How fast a turn to ask for, as opposed to how fast to meet it.
      *
