@@ -6,17 +6,17 @@ import com.acmerobotics.dashboard.config.Config;
 public class IntakeConstants {
 
     /*-----MOTOR POWERS---*/
-    public static double intakePowerIntake = 0.8;
+    public static double intakePowerIntake = 1;
     public static double intakePowerIntakeFarZone = 1;
     public static double transferPowerIntake = 0.8;
-    public static double transferPowerIntakeFarZone = 0.8;
+    public static double transferPowerIntakeFarZone = 0.85;
     public static double reversePower = 1;
     public static double intakePowerRecycle = 1;
 
     public static double transferPowerTransfer = 0.7;
 
-    public static double transferReverseTime = 15;   // ms
-    public static double transferReversePower = -0.2; // intake power during the reverse window
+    public static double transferReverseTime = 0;   // ms
+    public static double transferReversePower = 0; // intake power during the reverse window
 
     public static double intakeFirstPhase = 0;
     public static double intakeSecondPhase = 0.5;

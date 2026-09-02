@@ -9,6 +9,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Hardware.Intake.IntakeTransfer;
+import org.firstinspires.ftc.teamcode.Hardware.Outtake.Launcher;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Outtake;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.OuttakePositions;
 import org.firstinspires.ftc.teamcode.Hardware.Outtake.Turret;
@@ -81,7 +82,18 @@ public class TeleOP extends LinearOpMode
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         telemetry.setMsTransmissionInterval(75);
+
+        Launcher.cutMotor1 = false;
+        while (opModeInInit()) {
+            gg.update();
+            if (gg.backOnce()) Launcher.cutMotor1 = !Launcher.cutMotor1;
+            telemetry.addData("shooter1 cut (BACK to toggle)",
+                    Launcher.cutMotor1 ? "ARMED at " + Launcher.cutMotor1AfterMs + " ms" : "off");
+            telemetry.update();
+        }
+
         waitForStart();
+        robot.outtake.launcher.startMotor1CutTimer();
         robot.outtake.launcher.autoAimOn(true);
         robot.sensors.setUsePredictivePose(true);
         robot.sensors.setPoseAlign(false);
@@ -101,6 +113,10 @@ public class TeleOP extends LinearOpMode
             intakeUpdate();
 
             if(telemetryEnabled){
+                if (Launcher.cutMotor1) {
+                    telemetry.addData("shooter1 cut in (ms)",
+                            robot.outtake.launcher.motor1CutCountdownMs());
+                }
                 telemetry.addData("voltage",robot.sensors.getVoltage());
                 telemetry.addData("heading",robot.blob.odo.getHeading());
                 telemetry.addData("x",robot.blob.odo.getX());

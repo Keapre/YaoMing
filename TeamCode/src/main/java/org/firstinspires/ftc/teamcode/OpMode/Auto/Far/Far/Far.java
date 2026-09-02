@@ -27,6 +27,12 @@ public class Far extends OpMode {
     int cycleCounter = 0;
     int chosenZone = -1;
     Pose chosenZonePose = null;
+    /** Resolved index into zonePoses, after alliance mirroring and the speed shift. -1 until decided. */
+    int chosenZonePoseIndex = -1;
+    // Latched drive target for the current zone pickup: committed once at the start of the leg and
+    // at most once more when the veer decides, so blob keeps one path and progress is not reset to
+    // zero every loop. Re-issuing an identical pose is idempotent inside commitTarget.
+    Pose zoneDriveTarget = null;
     int selectedPipeline = FarConstants.limelightPipeline;
 
     // Latched side-veer for the current pickup (decided once, then held, to avoid pump-faking).
@@ -188,7 +194,11 @@ public class Far extends OpMode {
                 setPathState(AutoStates.WAIT_SCORE_SPIKE3);
                 break;
             case WAIT_SCORE_SPIKE3:
-                robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
+                if (pathFraction(constants.pickUpPose3, constants.scorePose) < constants.getSpike3IntakeUntilPercentage()) {
+                    robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
+                } else {
+                    robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
+                }
                 if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
                 sleep(constants.getShootingTime(), AutoStates.GO_PICKUP_HP, true);
@@ -202,8 +212,10 @@ public class Far extends OpMode {
                     poseIdx = Math.max(0, Math.min(constants.zonePoses.length - 1,
                             poseIdx + FarConstants.zoneSpeedShiftPose));
                 }
+                chosenZonePoseIndex = poseIdx;
                 chosenZonePose = constants.zonePoses[poseIdx];
                 veerDecided = false; veerOx = 0; veerOy = 0; veerSide = 0; // fresh veer decision for this pickup
+                zoneDriveTarget = null;
                 setPathState(AutoStates.GO_ZONE_PICKUP);
                 break;
             case GO_ZONE_PICKUP:
@@ -228,7 +240,7 @@ public class Far extends OpMode {
                 } else {
                     robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.OFF_OPEN);
                 }
-                if (!robot.blob.inPosition(1.6,1.6,0.12)) break;
+                if (!robot.blob.inPosition(1.6,1.6,0.35)) break;
                 robot.outtake.start_feed_rapid(constants.getLauncherVelocity(), constants.getHoodPosition());
                 cycleCounter++;
                 if (cycleCounter < constants.getCycleCount()) {
@@ -308,12 +320,24 @@ public class Far extends OpMode {
      * WAIT_PICKUP3 shares its leg's mode: the drive target is still live there, and switching mode
      * mid-leg would move the heading goal.
      */
+    /** zonePoses index whose return leg is driven as a reverse tangent. The far end of the lane. */
+    private static final int REVERSE_RETURN_POSE_INDEX = 3;
+
     private void applyHeadingMode() {
         switch (autoStates) {
             case GO_PICKUP3_INTER:
             case GO_PICKUP3:
             case WAIT_PICKUP3:
                 robot.blob.headingMode = Blob.HeadingMode.TANGENT;
+                break;
+            case GO_SCORE_CYCLE:
+            case WAIT_SCORE_CYCLE:
+                // Only the run home from the far zone is worth reversing: it is the long diagonal,
+                // so holding a fixed heading strafes most of it. The nearer zones come back close
+                // enough to straight that FIXED is fine.
+                robot.blob.headingMode = (chosenZonePoseIndex == REVERSE_RETURN_POSE_INDEX)
+                        ? Blob.HeadingMode.TANGENT_REVERSE
+                        : Blob.HeadingMode.FIXED;
                 break;
             default:
                 robot.blob.headingMode = Blob.HeadingMode.FIXED;
@@ -373,6 +397,8 @@ public class Far extends OpMode {
         robot.intakeTransfer.setIntakeState(IntakeTransfer.IntakeState.INTAKE);
 
         robot.blob.maxPower = 1.0;
+        if (zoneDriveTarget == null) zoneDriveTarget = chosenZonePose;
+
         double frac = pathFraction(constants.scorePose, chosenZonePose);
 
         if (!veerDecided && frac >= constants.getRescanPercentage() && robot.limelight.hasTarget()) {
@@ -385,9 +411,16 @@ public class Far extends OpMode {
             double sLeft = constants.getSideShiftLeftInches();
             if (rgt > ctr && rgt >= lft) { veerOx = rX * sRight; veerOy = rY * sRight; veerSide = 1; veerDecided = true; }
             else if (lft > ctr && lft > rgt) { veerOx = -rX * sLeft; veerOy = -rY * sLeft; veerSide = -1; veerDecided = true; }
+
+            // Snapshot the veered target once, at the instant the decision latches. Rebuilding it
+            // from live odometry every loop moved the target with the robot, which re-committed the
+            // path each loop, pinned progress at zero and left the X error never closing.
+            if (veerDecided) {
+                double baseX = (veerSide > 0) ? robot.blob.odo.getX() : chosenZonePose.getX();
+                zoneDriveTarget = new Pose(baseX + veerOx, chosenZonePose.getY() + veerOy,
+                        chosenZonePose.getHeading());
+            }
         }
-        double baseX = (veerSide > 0) ? robot.blob.odo.getX() : chosenZonePose.getX();
-        robot.blob.setTargetPosition(new Pose(baseX + veerOx, chosenZonePose.getY() + veerOy,
-                chosenZonePose.getHeading()));
+        robot.blob.setTargetPosition(zoneDriveTarget);
     }
 }

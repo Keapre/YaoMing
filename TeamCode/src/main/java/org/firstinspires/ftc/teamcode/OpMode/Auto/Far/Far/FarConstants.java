@@ -21,15 +21,18 @@ public class FarConstants {
 
     public static double launcherVelocity = 0;
     public static double hoodPosition = 0;
-    public static double shootingTime = 500;
+    public static double shootingTime = 520;
     public static double shootingPercentage = 0.95;
-    public static double cycleIntakeUntilPercentage = 0.15;
+    /** Keeps the intake running this far into the cycle run home, so the balls settle in. */
+    public static double cycleIntakeUntilPercentage = 0.3;
+    /** Keeps the intake running this far into the spike-3 run home, so the balls settle in. */
+    public static double spike3IntakeUntilPercentage = 0.3;
     public static double cyclePickupSlowPercentage = 0.45;
     public static double cyclePickupSlowPower = 0.7;
     public static double rescanPercentage = 0.6;
     public static double sideShiftRightInches = 6.0; // lateral veer toward the robot's right
     public static double sideShiftLeftInches = 6.0;  // lateral veer toward the robot's left
-    public static double hpIntakeUntilPercentage = 0.6;
+    public static double hpIntakeUntilPercentage = 0.5;
 
     public static double failSafeDtTime = 725;
     public static long failSafePickupTime = 825;
@@ -63,11 +66,15 @@ public class FarConstants {
 
 
 
-    // 3 zones, equally spaced across the far pickup lane (X 64.5 -> 27.3, step 18.6"), all at Y=58.92.
-    public static double zone0X = 64.5, zone0Y = 63, zone0Heading = (Math.PI/2)+0.3;
-    public static double zone1X = 48.24, zone1Y = 62.5, zone1Heading = Math.PI/2;
-    public static double zone2X = 28.47, zone2Y = 62.5, zone2Heading = Math.PI/2;
-    public Pose zonePose0, zonePose1, zonePose2;
+    // Heading is split in two on purpose. zoneNHeading is the base "face down the lane" angle and
+    // mirrors with the alliance; zoneNHeadingTrim is the hand-tuned nudge and does NOT. Folding the
+    // trim into the base meant m flipped its sign too, so a +0.1 that was right on red came out as
+    // -0.1 on blue and turned the robot the wrong way.
+    public static double zone0X = 64.5, zone0Y = 63, zone0Heading = Math.PI/2, zone0HeadingTrim = 0.1;
+    public static double zone1X = 60, zone1Y = 63, zone1Heading = Math.PI/2, zone1HeadingTrim = 0.1;
+    public static double zone2X = 48.24, zone2Y = 62.5, zone2Heading = Math.PI/2, zone2HeadingTrim = 0;
+    public static double zone3X = 28.47, zone3Y = 62.5, zone3Heading = Math.PI/2, zone3HeadingTrim = 0;
+    public Pose zonePose0, zonePose1, zonePose2, zonePose3;
     public Pose[] zonePoses;
 
 
@@ -87,13 +94,23 @@ public class FarConstants {
         pickUpPose3Intermediary = new Pose(pickUp3XIntermediary, pickUp3YIntermediairy * m, toBlobHeading(pickUp3HeadingIntermediary * m));
         pickUpPose3 = new Pose(pickUp3X, pickUp3Y * m, toBlobHeading(pickUp3Heading * m));
 
-        zonePose0 = new Pose(zone0X, zone0Y * m, toBlobHeading(zone0Heading * m));
-        zonePose1 = new Pose(zone1X, zone1Y * m, toBlobHeading(zone1Heading * m));
-        zonePose2 = new Pose(zone2X, zone2Y * m, toBlobHeading(zone2Heading * m));
-        zonePoses = new Pose[]{zonePose0, zonePose1, zonePose2};
+        zonePose0 = new Pose(zone0X, zone0Y * m, zoneHeading(zone0Heading, zone0HeadingTrim, m));
+        zonePose1 = new Pose(zone1X, zone1Y * m, zoneHeading(zone1Heading, zone1HeadingTrim, m));
+        zonePose2 = new Pose(zone2X, zone2Y * m, zoneHeading(zone2Heading, zone2HeadingTrim, m));
+        zonePose3 = new Pose(zone3X, zone3Y * m, zoneHeading(zone3Heading, zone3HeadingTrim, m));
+        zonePoses = new Pose[]{zonePose0, zonePose1, zonePose2, zonePose3};
 
         parkPose = new Pose(parkX, parkY * m, toBlobHeading(parkHeading * m));
         pickupFailsafePose = new Pose(pickupFailsafeX, pickupFailsafeY * m, toBlobHeading(pickupFailsafeHeading * m));
+    }
+
+    /**
+     * Zone heading in blob's frame. The base mirrors with the alliance so the robot still faces down
+     * its own lane; the trim is added afterwards so a positive trim turns the robot the same way on
+     * red and on blue, instead of flipping sign with the mirror.
+     */
+    private static double zoneHeading(double baseHeading, double trim, int m) {
+        return toBlobHeading(baseHeading * m + trim);
     }
 
     private static double toBlobHeading(double fieldHeading) {
@@ -121,6 +138,7 @@ public class FarConstants {
     public double getShootingTime() { return shootingTime; }
     public double getShootingPercentage() { return shootingPercentage; }
     public double getCycleIntakeUntilPercentage() { return cycleIntakeUntilPercentage; }
+    public double getSpike3IntakeUntilPercentage() { return spike3IntakeUntilPercentage; }
     public double getCyclePickupSlowPercentage() { return cyclePickupSlowPercentage; }
     public double getCyclePickupSlowPower() { return cyclePickupSlowPower; }
     public double getRescanPercentage() { return rescanPercentage; }

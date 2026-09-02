@@ -32,10 +32,10 @@ public class Launcher implements Module {
     Servo tilt2;
 
     public static double offsetPower = 0;
-    public static double[] Distances = {1, 50, 55.2, 58, 60, 63, 66, 69, 70, 85.5, 90.3, 95, 100, 110, 127, 136, 144, 153, 157.9,180}; //127
+    public static double[] Distances = {1, 50, 55.2, 58, 60, 63, 66, 69, 70, 85.5, 90.3, 95, 100, 110, 127, 136, 144, 153, 157.9,159}; //127
     // Corresponding Velocity values
     public static double[] velValues = {1320, 1320, 1330, 1360, 1370, 1395, 1400, 1401, 1500, 1550, 1580, 1600, 1700, 1950, 1950, 2050, 2100, 2150, 2250,2300};
-    public static double[] hoodValues = {0.1, 0.1, 0.12, 0.12, 0.13, 0.16, 0.19, 0.2, 0.23, 0.27, 0.27, 0.33, 0.34, 0.59, 0.6, 0.63, 0.63, 0.66, 0.7,0.7};
+    public static double[] hoodValues = {0.1, 0.1, 0.12, 0.12, 0.13, 0.16, 0.19, 0.2, 0.23, 0.27, 0.27, 0.33, 0.34, 0.59, 0.6, 0.63, 0.63, 0.66, 0.7,0.72};
 
 //    public static double[] Distances = {1, 50, 58, 66,70.5, 74, 82, 90, 98,106,114,  130,135,140,145,150,155,160,200};
 //    // Corresponding Velocity values
@@ -388,15 +388,28 @@ public class Launcher implements Module {
                 motor2.setPower(power);
                 break;
         }
+        if (isMotor1Cut()) motor1.setPower(0);
         tilt.setPosition(target_tilt + pickHoodOffset());
         tilt2.setPosition(target_tilt + pickHoodOffset());
     }
 
-    /**
-     * Single point of flywheel-controller selection. Priority: RST &gt; Team254 &gt; PID.
-     * When RST is active it is re-seeded as the wheel spins up from rest (target rising through ~0),
-     * so its integrator starts at the feedforward power instead of winding up from a cold state.
-     */
+    public static boolean cutMotor1 = false;
+    public static double cutMotor1AfterMs = 30000;
+    private final ElapsedTime cutMotor1Timer = new ElapsedTime();
+
+    public void startMotor1CutTimer() {
+        cutMotor1Timer.reset();
+    }
+
+    public boolean isMotor1Cut() {
+        return cutMotor1 && cutMotor1Timer.milliseconds() >= cutMotor1AfterMs;
+    }
+
+    public double motor1CutCountdownMs() {
+        return cutMotor1AfterMs - cutMotor1Timer.milliseconds();
+    }
+
+
     private double flywheelPower(double target, double current, double voltage) {
         if (useRST) {
             if (lastFlywheelTarget <= 1.0 && target > 1.0) rstController.reset();

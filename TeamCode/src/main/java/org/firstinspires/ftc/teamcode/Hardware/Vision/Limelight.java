@@ -26,8 +26,10 @@ public class Limelight implements Module {
     public static double STALE_TIMEOUT_MS = 250;
     public static double DETECT_CONF = 0.4;
     public static double HFOV_DEG = 54.5;
-    public static int NUM_ZONES = 3;
+    public static int NUM_ZONES = 4;
     public static double ZONE_SWITCH_MIN_MARGIN = 1;
+    public static int PREFERRED_ZONE = 0;
+    public static int PREFERRED_ZONE_MARGIN = 2;
     public static double SMOOTHING_ALPHA = 0.15;
     public static int LOST_TARGET_FRAMES = 5;
 
@@ -166,15 +168,7 @@ public class Limelight implements Module {
         boolean rawFound = false;
         double rawAvgSpeed = 0.0;
         if (count > 0) {
-            double center = (nz - 1) / 2.0;
-            int best = 0;
-            for (int i = 1; i < nz; i++) {
-                if (zoneCounts[i] > zoneCounts[best]
-                        || (zoneCounts[i] == zoneCounts[best]
-                            && Math.abs(i - center) < Math.abs(best - center))) {
-                    best = i;
-                }
-            }
+            int best = pickBestZone(zoneCounts, nz);
 
             int lockedCount = (lockedZone != null) ? zoneCounts[lockedZone] : 0;
             if (lockedZone == null || zoneCounts[best] > lockedZoneCount + ZONE_SWITCH_MIN_MARGIN || lockedCount == 0) {
@@ -214,6 +208,34 @@ public class Limelight implements Module {
         if (triggersEnabled) {
             for (Trigger t : triggers) t.evaluate();
         }
+    }
+
+    /**
+     * Fullest zone, with a standing preference for {@link #PREFERRED_ZONE}: another zone has to lead
+     * it by {@link #PREFERRED_ZONE_MARGIN} balls before we go there instead. Among the rest, more
+     * balls wins and ties go to whichever sits closest to the middle of the frame.
+     *
+     * <p>A PREFERRED_ZONE outside [0, nz) turns the preference off and leaves the plain
+     * most-balls-then-centre rule.
+     */
+    private static int pickBestZone(int[] zoneCounts, int nz) {
+        double center = (nz - 1) / 2.0;
+        int preferred = (PREFERRED_ZONE >= 0 && PREFERRED_ZONE < nz) ? PREFERRED_ZONE : -1;
+
+        int best = -1;
+        for (int i = 0; i < nz; i++) {
+            if (i == preferred) continue;
+            if (best < 0
+                    || zoneCounts[i] > zoneCounts[best]
+                    || (zoneCounts[i] == zoneCounts[best]
+                        && Math.abs(i - center) < Math.abs(best - center))) {
+                best = i;
+            }
+        }
+
+        if (preferred < 0) return best;                 // preference disabled
+        if (best < 0) return preferred;                 // only one zone exists
+        return (zoneCounts[best] >= zoneCounts[preferred] + PREFERRED_ZONE_MARGIN) ? best : preferred;
     }
 
     private int zoneOf(double txDeg, int nz) {
